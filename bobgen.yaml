@@ -1,0 +1,24 @@
+# development configuration
+
+driver: "github.com/jackc/pgx/v5"
+
+psql:
+  host: localhost
+  port: 5432
+  user: postgres
+  pass: postgres
+  dbname: db
+  sslmode: disable
+
+plugins:
+  models:
+    destination: internal/db/models
+    pkgname: models
+  queries:
+    destination: internal/db/queries
+    pkgname: queries
+  dberrors:
+    destination: internal/db/errors
+    pkgname: dberrors
+  dbinfo:
+    disabled: true
