@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Port                 string   `env:"PORT" envDefault:"8080"`
+	DatabaseURL          string   `env:"DATABASE_URL"`
 	AllowedOriginsString string   `env:"ALLOWED_ORIGINS"`
 	AllowedOrigins       []string ``
 }

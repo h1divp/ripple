@@ -7,12 +7,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/h1divp/echo-chat-v2/internal/api"
+	"github.com/h1divp/echo-chat-v2/internal/db"
 	"github.com/h1divp/echo-chat-v2/internal/logger"
 )
-
-// init logger
-// init config
-// init api service
 
 func main() {
 	logger := logger.New()
@@ -21,7 +18,11 @@ func main() {
 	// redis
 	// middlewear
 
-	// repos, services, handlers
+	store, err := store.New(config.DatabaseURL)
+	if err != nil {
+		log.Fatal().Msgf("%s", err)
+	}
+	defer store.Close()
 
 	api := api.CreateApi(&logger)
 
