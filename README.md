@@ -46,5 +46,5 @@ Dev slice-of-life
 - sharded db
 - testing :)
 
-Styling
+UI
 - i would like it to be a bit more stylized than just boilerplate, but that's not very important early on
