@@ -39,6 +39,7 @@ Nice to haves
 - bluetooth only mode
   - when resources within an area are highly utilized a this mode can be suggested as a fallback
   - likely only allows for a very small radius and may be hard to do in a web app; needs investigation
+- phone number sign-up
 
 Dev slice-of-life
 - versioned deployments
@@ -46,5 +47,6 @@ Dev slice-of-life
 - sharded db
 - testing :)
 
-Styling
+frontend
 - i would like it to be a bit more stylized than just boilerplate, but that's not very important early on
+- opengraph
