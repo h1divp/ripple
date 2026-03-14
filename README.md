@@ -40,6 +40,14 @@ Nice to haves
   - when resources within an area are highly utilized a this mode can be suggested as a fallback
   - likely only allows for a very small radius and may be hard to do in a web app; needs investigation
 - phone number sign-up
+- user reputation
+  - calculated based on things like amount of messages sent (activity), friends, reacted messages
+  - could use up/down voting?
+  - "shadowmuting" idea:
+    - user has been downvoted so frequently in a short period of time that their messages start being muted without the sendering knowing it was fully sent or not
+    - natural way to deter hatespeech and bots without needing to flag things for moderation
+    - can make it obvious too, i.e. disable message box for time period, pop up ban message, show less messages to user
+- add something reminiscent of 3ds streetpass 
 
 Dev slice-of-life
 - versioned deployments
