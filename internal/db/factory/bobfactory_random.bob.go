@@ -4,8 +4,11 @@
 package factory
 
 import (
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/jaswdr/faker/v2"
 )
 
@@ -35,6 +38,22 @@ func random_int64(f *faker.Faker, limits ...string) int64 {
 	return f.Int64()
 }
 
+func random_string(f *faker.Faker, limits ...string) string {
+	if f == nil {
+		f = &defaultFaker
+	}
+
+	val := strings.Join(f.Lorem().Words(f.IntBetween(1, 5)), " ")
+	if len(limits) == 0 {
+		return val
+	}
+	limitInt, _ := strconv.Atoi(limits[0])
+	if limitInt > 0 && limitInt < len(val) {
+		val = val[:limitInt]
+	}
+	return val
+}
+
 func random_time_Time(f *faker.Faker, limits ...string) time.Time {
 	if f == nil {
 		f = &defaultFaker
@@ -44,4 +63,12 @@ func random_time_Time(f *faker.Faker, limits ...string) time.Time {
 	min := time.Now().Add(-year)
 	max := time.Now().Add(year)
 	return f.Time().TimeBetween(min, max)
+}
+
+func random_uuid_UUID(f *faker.Faker, limits ...string) uuid.UUID {
+	if f == nil {
+		f = &defaultFaker
+	}
+
+	return uuid.Must(uuid.NewV4())
 }

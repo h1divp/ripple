@@ -3,10 +3,25 @@
 
 package models
 
-import "github.com/stephenafamo/bob"
+import (
+	"database/sql"
+	"database/sql/driver"
+
+	"github.com/gofrs/uuid/v5"
+	"github.com/stephenafamo/bob"
+)
 
 // Set the testDB to enable tests that use the database
 var testDB bob.Transactor[bob.Tx]
 
-// Make sure the type GooseDBVersion runs hooks after queries
-var _ bob.HookableType = &GooseDBVersion{}
+// Make sure the type AuthUser runs hooks after queries
+var _ bob.HookableType = &AuthUser{}
+
+// Make sure the type PublicGooseDBVersion runs hooks after queries
+var _ bob.HookableType = &PublicGooseDBVersion{}
+
+// Make sure the type uuid.UUID satisfies database/sql.Scanner
+var _ sql.Scanner = (*uuid.UUID)(nil)
+
+// Make sure the type uuid.UUID satisfies database/sql/driver.Valuer
+var _ driver.Valuer = *new(uuid.UUID)

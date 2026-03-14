@@ -3,15 +3,15 @@
 
 package dberrors
 
-var GooseDBVersionErrors = &gooseDBVersionErrors{
+var PublicGooseDBVersionErrors = &publicGooseDBVersionErrors{
 	ErrUniqueGooseDbVersionPkey: &UniqueConstraintError{
-		schema:  "",
+		schema:  "public",
 		table:   "goose_db_version",
 		columns: []string{"id"},
 		s:       "goose_db_version_pkey",
 	},
 }
 
-type gooseDBVersionErrors struct {
+type publicGooseDBVersionErrors struct {
 	ErrUniqueGooseDbVersionPkey *UniqueConstraintError
 }

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestCreateGooseDBVersion(t *testing.T) {
+func TestCreateAuthUser(t *testing.T) {
 	if testDB == nil {
 		t.Skip("skipping test, no DSN provided")
 	}
@@ -27,7 +27,31 @@ func TestCreateGooseDBVersion(t *testing.T) {
 		}
 	}()
 
-	if _, err := New().NewGooseDBVersionWithContext(ctx).Create(ctx, tx); err != nil {
-		t.Fatalf("Error creating GooseDBVersion: %v", err)
+	if _, err := New().NewAuthUserWithContext(ctx).Create(ctx, tx); err != nil {
+		t.Fatalf("Error creating AuthUser: %v", err)
+	}
+}
+
+func TestCreatePublicGooseDBVersion(t *testing.T) {
+	if testDB == nil {
+		t.Skip("skipping test, no DSN provided")
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	t.Cleanup(cancel)
+
+	tx, err := testDB.Begin(ctx)
+	if err != nil {
+		t.Fatalf("Error starting transaction: %v", err)
+	}
+
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil {
+			t.Fatalf("Error rolling back transaction: %v", err)
+		}
+	}()
+
+	if _, err := New().NewPublicGooseDBVersionWithContext(ctx).Create(ctx, tx); err != nil {
+		t.Fatalf("Error creating PublicGooseDBVersion: %v", err)
 	}
 }

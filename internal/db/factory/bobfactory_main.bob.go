@@ -7,35 +7,65 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	models "github.com/h1divp/echo-chat-v2/internal/db/models"
 )
 
 type Factory struct {
-	baseGooseDBVersionMods GooseDBVersionModSlice
+	baseAuthUserMods             AuthUserModSlice
+	basePublicGooseDBVersionMods PublicGooseDBVersionModSlice
 }
 
 func New() *Factory {
 	return &Factory{}
 }
 
-func (f *Factory) NewGooseDBVersion(mods ...GooseDBVersionMod) *GooseDBVersionTemplate {
-	return f.NewGooseDBVersionWithContext(context.Background(), mods...)
+func (f *Factory) NewAuthUser(mods ...AuthUserMod) *AuthUserTemplate {
+	return f.NewAuthUserWithContext(context.Background(), mods...)
 }
 
-func (f *Factory) NewGooseDBVersionWithContext(ctx context.Context, mods ...GooseDBVersionMod) *GooseDBVersionTemplate {
-	o := &GooseDBVersionTemplate{f: f}
+func (f *Factory) NewAuthUserWithContext(ctx context.Context, mods ...AuthUserMod) *AuthUserTemplate {
+	o := &AuthUserTemplate{f: f}
 
 	if f != nil {
-		f.baseGooseDBVersionMods.Apply(ctx, o)
+		f.baseAuthUserMods.Apply(ctx, o)
 	}
 
-	GooseDBVersionModSlice(mods).Apply(ctx, o)
+	AuthUserModSlice(mods).Apply(ctx, o)
 
 	return o
 }
 
-func (f *Factory) FromExistingGooseDBVersion(m *models.GooseDBVersion) *GooseDBVersionTemplate {
-	o := &GooseDBVersionTemplate{f: f, alreadyPersisted: true}
+func (f *Factory) FromExistingAuthUser(m *models.AuthUser) *AuthUserTemplate {
+	o := &AuthUserTemplate{f: f, alreadyPersisted: true}
+
+	o.ID = func() uuid.UUID { return m.ID }
+	o.Email = func() string { return m.Email }
+	o.EmailVerified = func() bool { return m.EmailVerified }
+	o.CreatedAt = func() time.Time { return m.CreatedAt }
+	o.UpdatedAt = func() time.Time { return m.UpdatedAt }
+
+	return o
+}
+
+func (f *Factory) NewPublicGooseDBVersion(mods ...PublicGooseDBVersionMod) *PublicGooseDBVersionTemplate {
+	return f.NewPublicGooseDBVersionWithContext(context.Background(), mods...)
+}
+
+func (f *Factory) NewPublicGooseDBVersionWithContext(ctx context.Context, mods ...PublicGooseDBVersionMod) *PublicGooseDBVersionTemplate {
+	o := &PublicGooseDBVersionTemplate{f: f}
+
+	if f != nil {
+		f.basePublicGooseDBVersionMods.Apply(ctx, o)
+	}
+
+	PublicGooseDBVersionModSlice(mods).Apply(ctx, o)
+
+	return o
+}
+
+func (f *Factory) FromExistingPublicGooseDBVersion(m *models.PublicGooseDBVersion) *PublicGooseDBVersionTemplate {
+	o := &PublicGooseDBVersionTemplate{f: f, alreadyPersisted: true}
 
 	o.ID = func() int32 { return m.ID }
 	o.VersionID = func() int64 { return m.VersionID }
@@ -45,10 +75,18 @@ func (f *Factory) FromExistingGooseDBVersion(m *models.GooseDBVersion) *GooseDBV
 	return o
 }
 
-func (f *Factory) ClearBaseGooseDBVersionMods() {
-	f.baseGooseDBVersionMods = nil
+func (f *Factory) ClearBaseAuthUserMods() {
+	f.baseAuthUserMods = nil
 }
 
-func (f *Factory) AddBaseGooseDBVersionMod(mods ...GooseDBVersionMod) {
-	f.baseGooseDBVersionMods = append(f.baseGooseDBVersionMods, mods...)
+func (f *Factory) AddBaseAuthUserMod(mods ...AuthUserMod) {
+	f.baseAuthUserMods = append(f.baseAuthUserMods, mods...)
+}
+
+func (f *Factory) ClearBasePublicGooseDBVersionMods() {
+	f.basePublicGooseDBVersionMods = nil
+}
+
+func (f *Factory) AddBasePublicGooseDBVersionMod(mods ...PublicGooseDBVersionMod) {
+	f.basePublicGooseDBVersionMods = append(f.basePublicGooseDBVersionMods, mods...)
 }

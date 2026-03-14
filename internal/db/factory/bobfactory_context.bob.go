@@ -7,8 +7,13 @@ import "context"
 
 type contextKey string
 
-// Relationship Contexts for goose_db_version
-var gooseDBVersionWithParentsCascadingCtx = newContextual[bool]("gooseDBVersionWithParentsCascading")
+var (
+	// Relationship Contexts for auth.users
+	authUserWithParentsCascadingCtx = newContextual[bool]("authUserWithParentsCascading")
+
+	// Relationship Contexts for public.goose_db_version
+	publicGooseDBVersionWithParentsCascadingCtx = newContextual[bool]("publicGooseDBVersionWithParentsCascading")
+)
 
 // Contextual is a convienience wrapper around context.WithValue and context.Value
 type contextual[V any] struct {
