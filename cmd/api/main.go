@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/h1divp/echo-chat-v2/internal/config"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 
 	"github.com/h1divp/echo-chat-v2/internal/api"
@@ -22,6 +23,13 @@ func main() {
 		log.Fatal().Msgf("%s", err)
 	}
 	defer store.Close()
+
+	redisOpt, err := redis.ParseURL(config.RedisURL)
+	if err != nil {
+		log.Fatal().Msgf("%s", err)
+	}
+
+	rdb := redis.NewClient(redisOpt)
 
 	api := api.CreateApi(&logger)
 

@@ -12,9 +12,10 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+      - redis
 
   postgres:
-    image: postgres:18.3
+    image: postgres:18.3-alpine
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
@@ -26,5 +27,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgres/data
 
+  redis:
+    image: redis:8.6.1-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+    - redis_data:/var/lib/redis/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
 volumes:
   postgres_data:
+  redis_data:
