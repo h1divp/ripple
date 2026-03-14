@@ -1,9 +1,14 @@
-driver: "github.com/jackc/pgx/v5"
+output: "internal/db/models"
+pkgname: "models"
+no_sub_packages: true
 
 psql:
   # dsn is in .env as PSQL_DSN
-  output: "internal/db/models"
-  pkgname: "models"
+  driver: "github.com/jackc/pgx/v5/stdlib"
+  shared_schema: main
+  schemas:
+    - auth
+    - public
 
 plugins:
   models:
