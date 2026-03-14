@@ -5,22 +5,21 @@ import (
 	"database/sql"
 	"embed"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/stephenafamo/bob"
 
-	"github.com/h1divp/echo-chat-v2/internal/models"
-
 	_ "github.com/jackc/pgx/v5"
 )
 
+//go:embed migrations/*.sql
 var embedMigrations embed.FS
 
 type Store struct {
 	db   bob.Executor
 	pool *pgxpool.Pool
-	repo *models.Store
 }
 
 func New(connString string) (*Store, error) {
@@ -56,9 +55,7 @@ func New(connString string) (*Store, error) {
 	return &Store{
 		db:   executor,
 		pool: pool,
-		repo: models.New(executor),
 	}, nil
-
 }
 
 func (s *Store) Close() error {
@@ -66,19 +63,8 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Store, *sql.Tx, error) {
-	tx, err := s.BeginTx(ctx, opts)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	txExecutor := bob.NewTx(tx)
-
-	return &Store{
-		db: txExecutor,
-		pool: s.pool,
-		repo: models.New(txExecutor)
-	}
+func (s *Store) BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error) {
+	return s.pool.BeginTx(ctx, opts)
 }
 
 func (s *Store) executor(tx *sql.Tx) bob.Executor {
