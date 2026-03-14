@@ -15,8 +15,7 @@ func main() {
 	logger := logger.New()
 	config := config.Load()
 
-	// redis
-	// middlewear
+	// TODO: add redis & middlewear
 
 	store, err := store.New(config.DatabaseURL)
 	if err != nil {
