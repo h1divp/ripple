@@ -1,14 +1,14 @@
-# development configuration
-
-driver: "github.com/jackc/pgx/v5"
+output: "internal/db/models"
+pkgname: "models"
+no_sub_packages: true
 
 psql:
-  host: localhost
-  port: 5432
-  user: postgres
-  pass: postgres
-  dbname: db
-  sslmode: disable
+  # dsn is in .env as PSQL_DSN
+  driver: "github.com/jackc/pgx/v5/stdlib"
+  shared_schema: main
+  schemas:
+    - auth
+    - public
 
 plugins:
   models:
@@ -17,6 +17,9 @@ plugins:
   queries:
     destination: internal/db/queries
     pkgname: queries
+  factory:
+    destination: internal/db/factory
+    pkgname: factory
   dberrors:
     destination: internal/db/errors
     pkgname: dberrors
