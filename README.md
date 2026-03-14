@@ -58,3 +58,4 @@ Dev slice-of-life
 UI
 - i would like it to be a bit more stylized than just boilerplate, but that's not very important early on
 - opengraph
+- visual indictator (like 0.1s blink) for when the user's location is updated
