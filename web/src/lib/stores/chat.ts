@@ -28,15 +28,15 @@ export function connect(displayName: string) {
     senderId: get(userId),
     timestamp: Date.now(),
     status: 'sent',
-    type: 'system' 
+    type: 'system',
   };
-  messages.update(prev => [...prev, joinMsg]);
+  messages.update((prev) => [...prev, joinMsg]);
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
     messages.update((prev) => {
-      const existingIndex = prev.findIndex(m => m.id === data.id);
+      const existingIndex = prev.findIndex((m) => m.id === data.id);
 
       if (existingIndex !== -1) {
         // Update existing optimistic message
@@ -60,11 +60,10 @@ export function sendMessage(text: string) {
       avatarSeed: get(userAvatarSeed),
       senderId: get(userId),
       timestamp: Date.now(),
-      status: 'sending'
+      status: 'sending',
     };
 
     messages.update((prev) => [...prev, newMessage]);
-    socket.send(JSON.stringify(newMessage))
+    socket.send(JSON.stringify(newMessage));
   }
 }
-
