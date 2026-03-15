@@ -48,6 +48,10 @@ Nice to haves
     - natural way to deter hatespeech and bots without needing to flag things for moderation
     - can make it obvious too, i.e. disable message box for time period, pop up ban message, show less messages to user
 - add something reminiscent of 3ds streetpass 
+- when there are no users present in someones area, try the following
+  - allow a user to expand their radius to a larger present (e.g. 50m, 200m, 1km, etc).
+  - only let users talk to eachother within the same radius, but also who have the *same radius setting*
+  - this allows for a higher chance of interaction (making the app more enjoyable) while still keeping some locality. i.e. people in the same city can talk to eachother if theres no-one in the same building in chat
 
 Dev slice-of-life
 - versioned deployments

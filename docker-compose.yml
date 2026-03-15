@@ -3,16 +3,30 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./
+      target: development
     environment:
       - GOFLAGS=-buildvcs=false
     env_file: ".env"
     volumes:
       - ./:/app
+    networks:
+      - echo-network
     ports:
       - 8080:8080
     depends_on:
       - postgres
       - redis
+
+  web:
+    build:
+      dockerfile: Dockerfile
+      context: ./web/
+      target: development
+    ports:
+      - 5173:5173
+    volumes:
+      - ./web:/app
+      - /app/node_modules
 
   postgres:
     image: postgres:18.3-alpine
@@ -26,21 +40,29 @@ services:
     attach: false
     volumes:
       - postgres_data:/var/lib/postgres/data
+    networks:
+      - echo-network
 
   redis:
-    image: redis:8.6.1-alpine
+    image: redis:7-alpine
     container_name: redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-    - redis_data:/var/lib/redis/data
+      - redis_data:/data
+    networks:
+      - echo-network
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
-      interval: 10s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 5s
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  echo-network:
+    driver: bridge
