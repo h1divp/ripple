@@ -31,7 +31,7 @@ func (h *Handler) Connect(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	displayName := r.URL.Query().Get("displayName")
-	// TODO: randomize name
+	// TODO: randomize name (this should be done in web)
 	if displayName == "" {
 		displayName = "Anonymous"
 	}
