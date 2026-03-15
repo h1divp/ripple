@@ -67,3 +67,4 @@ UI
 - opengraph
 - visual indictator (like 0.1s blink) for when the user's location is updated
 - (on desktop) drag-to-resize chatbox
+- clicking on the logo at the top should show a popup with an explanation, maybe link to blogpost.
