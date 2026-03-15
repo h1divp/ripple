@@ -1,6 +1,7 @@
 <script lang="ts">
   let { isConnected, nearbyCounter } = $props();
   import { IconUsers } from '@tabler/icons-svelte';
+
 </script>
 
 <div class="mb-4 flex flex-row flex-wrap items-center justify-center gap-2 sm:justify-start">

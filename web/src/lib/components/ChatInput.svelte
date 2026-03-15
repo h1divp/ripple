@@ -1,14 +1,17 @@
 <script lang="ts">
   let { onSend, isConnected } = $props();
   import { IconSend2, IconCloudOff } from '@tabler/icons-svelte';
+  import { userDisplayName, userAvatarSeed, userId } from '$lib/stores/chat';
 
   let newMessage = $state('');
   function handleSend() {
-    if (newMessage.trim()) {
-      sendMessage(newMessage);
+    if (newMessage.trim() && $isConnected) {
+      onSend(newMessage.trim());
       newMessage = '';
+      if (textarea) textarea.style.height = 'auto';
     }
   }
+
 
   let textarea: HTMLTextAreaElement;
   function autoResize() {
