@@ -1,23 +1,25 @@
 package api
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/rs/zerolog"
+
+	"github.com/h1divp/echo-chat-v2/internal/config"
+	"github.com/h1divp/echo-chat-v2/internal/user"
 )
 
 type Api struct {
-	Router *chi.Mux
-	Logger *zerolog.Logger
+	Router      *chi.Mux
+	Logger      *zerolog.Logger
+	UserHandler *user.Handler
 }
 
-func CreateApi(logger *zerolog.Logger) *Api {
+func CreateApi(logger *zerolog.Logger, userHdl *user.Handler) *Api {
 	api := &Api{
-		Router: chi.NewRouter(),
-		Logger: logger,
+		Router:      chi.NewRouter(),
+		Logger:      logger,
+		UserHandler: userHdl,
 	}
 
 	api.CreateRoutes()
@@ -37,7 +39,5 @@ func (api *Api) CreateRoutes() {
 		MaxAge:           300,
 	}))
 
-	api.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hello~"))
-	})
+	api.Router.Get("/ws/chat", api.UserHandler.Connect)
 }
