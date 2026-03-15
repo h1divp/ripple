@@ -16,8 +16,9 @@
   let textarea: HTMLTextAreaElement;
   function autoResize() {
     if (!textarea) return;
-    textarea.style.height = '0px'; 
-    const newHeight = Math.min(textarea.scrollHeight, 150);
+    textarea.style.height = 'auto';
+    const offset = textarea.offsetHeight - textarea.clientHeight;
+    const newHeight = Math.max(40, Math.min(textarea.scrollHeight + offset, 150));
     textarea.style.height = newHeight + 'px';
   }
 
@@ -37,10 +38,10 @@
     oninput={autoResize}
     onkeydown={handleKeydown}
     disabled={!$isConnected}
-    type="text"
     placeholder="Send a message"
     rows="1"
-    class="textarea textarea-bordered min-h-[2.5rem] flex-1 resize-none overflow-hidden rounded-lg border-gray-300 py-2 leading-normal focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-gray-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:placeholder-gray-400"
+    class="textarea textarea-bordered box-border flex-1 resize-none overflow-hidden rounded-lg border-gray-300 py-[9px] leading-5 focus:border-sky-500 focus:ring-1 focus:ring-gray-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
+    style="height: 40px; min-height: 40px;"
   ></textarea>
 
   <button
