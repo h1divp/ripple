@@ -9,11 +9,11 @@ let socket: WebSocket;
 
 export function connect(displayName: string) {
   // cannot send displayName over as json body since this is not http, so we use query params
-  const connUrl = `${PUBLIC_WS_URL}?displayName=${displayName}`
-  socket = new WebSocket(connUrl) 
+  const connUrl = `${PUBLIC_WS_URL}?displayName=${displayName}`;
+  socket = new WebSocket(connUrl);
 
-  socket.onopen = () => isConnected.set(true)
-  socket.onclose = () => isConnected.set(false)
+  socket.onopen = () => isConnected.set(true);
+  socket.onclose = () => isConnected.set(false);
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
