@@ -15,6 +15,7 @@ type Config struct {
 	RedisURL             string   `env:"REDIS_URL"`
 	AllowedOriginsString string   `env:"ALLOWED_ORIGINS"`
 	AllowedOrigins       []string ``
+	SessionExpireTime    uint32   `env:"SESSION_EXPIRE_TIME_MIN"`
 }
 
 func Load() *Config {

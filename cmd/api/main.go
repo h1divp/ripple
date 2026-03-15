@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/h1divp/echo-chat-v2/internal/config"
+	"github.com/h1divp/echo-chat-v2/internal/user"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 
@@ -28,10 +29,14 @@ func main() {
 	if err != nil {
 		log.Fatal().Msgf("%s", err)
 	}
-
 	rdb := redis.NewClient(redisOpt)
 
-	api := api.CreateApi(&logger)
+	// Dependency injections
+	userRepo := user.NewRepository(logger, rdb)
+	userSvc := user.NewService(userRepo)
+	userHdl := user.NewHandler(logger, userSvc)
+
+	api := api.CreateApi(&logger, userHdl)
 
 	logger.Info().Msgf("Api is listening on port %s", config.Port)
 	if err := http.ListenAndServe(":"+config.Port, api.Router); err != nil {

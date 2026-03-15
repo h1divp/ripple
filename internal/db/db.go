@@ -18,7 +18,7 @@ import (
 var embedMigrations embed.FS
 
 type Store struct {
-	db   bob.Executor
+	db   bob.DB
 	pool *pgxpool.Pool
 }
 
