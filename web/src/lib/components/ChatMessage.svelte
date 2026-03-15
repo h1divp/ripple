@@ -12,7 +12,7 @@
 
 <div class="chat">
 
-  <div class="group flex flex-row items-start px-2 py-0 hover:bg-black/5">
+  <div class="group flex flex-row items-start py-0 hover:bg-black/5">
 
   <div class="w-12 flex-shrink-0">
     {#if showDetails}
@@ -35,7 +35,7 @@
   <div class="flex flex-col overflow-hidden">
     {#if showDetails}
       <div class="flex items-baseline gap-2">
-        <span class="font-bold text-md text-sky-900 cursor-pointer">
+        <span class="font-bold text-md text-sky-900">
           {message.displayName}
         </span>
         <span class="text-xs text-gray-500">
@@ -46,7 +46,7 @@
 
     <div
       class="text-md leading-tight break-words duration-0"
-      class:text-grey-400={isSending}
+      class:text-sky-900={isSending}
       class:opacity-70={isSending}
       class:text-gray-800={!isSending}
     >
