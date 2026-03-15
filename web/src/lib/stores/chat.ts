@@ -19,21 +19,36 @@ export function connect(displayName: string) {
   socket.onopen = () => isConnected.set(true);
   socket.onclose = () => isConnected.set(false);
 
+  const now = new Date();
+  const joinMsg: Message = {
+    id: crypto.randomUUID(),
+    text: `joined at ${now.toLocaleString([], { hour: '2-digit', minute: '2-digit' })}`,
+    displayName: get(userDisplayName),
+    avatarSeed: get(userAvatarSeed),
+    senderId: get(userId),
+    timestamp: Date.now(),
+    status: 'sent',
+    type: 'system' 
+  };
+  messages.update(prev => [...prev, joinMsg]);
+
   socket.onmessage = (event) => {
-    const incomingData = JSON.parse(event.data);
+    const data = JSON.parse(event.data);
 
     messages.update((prev) => {
-      const existingIndex = prev.findIndex(m => m.id === incomingData.id);
+      const existingIndex = prev.findIndex(m => m.id === data.id);
 
       if (existingIndex !== -1) {
+        // Update existing optimistic message
         const updated = [...prev];
-        updated[existingIndex] = { ...incomingData, status: 'sent' };
+        updated[existingIndex] = { ...data, status: 'sent' };
         return updated;
       }
 
-      return [...prev, { incomingData, status: 'sent' }];
-    })
-  }
+      // Add new message from another user
+      return [...prev, { ...data, status: 'sent' }];
+    });
+  };
 }
 
 export function sendMessage(text: string) {

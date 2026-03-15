@@ -1,3 +1,4 @@
+export type MessageType = 'chat' | 'system';
 export type MessageStatus = 'sending' | 'sent' | 'error';
 
 export interface Message {
@@ -8,4 +9,5 @@ export interface Message {
   status: MessageStatus;
   senderId: string;
   avatarSeed: string;
+  type?: MessageType;
 }

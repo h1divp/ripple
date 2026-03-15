@@ -6,6 +6,7 @@
   const date = $derived(new Date(message.timestamp));
   const timeString = $derived(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
   const fullDateString = $derived(date.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }));
+  const isSending = $derived(message.status === 'sending');
   const avatarUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${message.avatarSeed}`;
 </script>
 
@@ -43,7 +44,12 @@
       </div>
     {/if}
 
-    <div class="text-md text-gray-800 leading-tight break-words">
+    <div
+      class="text-md leading-tight break-words duration-0"
+      class:text-grey-400={isSending}
+      class:opacity-70={isSending}
+      class:text-gray-800={!isSending}
+    >
       {message.text}
     </div>
   </div>

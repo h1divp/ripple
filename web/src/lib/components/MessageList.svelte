@@ -1,5 +1,7 @@
 <script lang="ts">
-  import MessageBubble from './MessageBubble.svelte';
+  import ChatMessage from './ChatMessage.svelte';
+  import SystemMessage from './SystemMessage.svelte';
+
   let { messages, currentUserId } = $props();
   let scrollContainer: HTMLDivElement | undefined = $state();
 
@@ -14,13 +16,21 @@
   });
 </script>
 
-<div bind:this={scrollContainer} class="flex-1 overflow-y-auto p-4 space-y-1 bg-base-200">
+<div bind:this={scrollContainer} class="flex-1 overflow-y-auto lg:p-4 space-y-1 bg-base-200">
   {#each messages as msg, i (msg.id)}
-    {@const isFirstInGroup = i === 0 || messages[i - 1].senderId !== msg.senderId}
-    <MessageBubble 
-      message={msg} 
-      isMe={msg.senderId === currentUserId} 
-      showDetails={isFirstInGroup} 
-    />
+    {#if msg.type === 'system'}
+      <SystemMessage message={msg.text} />
+    {:else}
+      {@const isFirstInGroup = 
+        i === 0 || 
+        messages[i - 1].senderId !== msg.senderId || 
+        messages[i - 1].type === 'system'
+      }
+      <ChatMessage
+        message={msg} 
+        isMe={msg.senderId === currentUserId} 
+        showDetails={isFirstInGroup} 
+      />
+    {/if}
   {/each}
 </div>
