@@ -60,6 +60,7 @@ Dev slice-of-life
 - good observability
 - sharded db
 - testing :)
+  - would be nice to have a script for load testing ws connections and flood of chat messages
 
 UI
 - i would like it to be a bit more stylized than just boilerplate, but that's not very important early on
