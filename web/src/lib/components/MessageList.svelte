@@ -10,7 +10,7 @@
     if (messages && scrollContainer) {
       scrollContainer.scrollTo({
         top: scrollContainer.scrollHeight,
-        behavior: 'smooth',
+        behavior: 'instant',
       });
     }
   });
