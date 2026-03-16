@@ -67,4 +67,3 @@ export function sendMessage(text: string) {
     socket.send(JSON.stringify(newMessage));
   }
 }
-
