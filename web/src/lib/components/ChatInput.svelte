@@ -40,7 +40,14 @@
     disabled={!$isConnected}
     placeholder="Send a message"
     rows="1"
-    class="textarea textarea-bordered box-border flex-1 resize-none overflow-hidden rounded-lg border-gray-300 py-[9px] leading-5 focus:border-sky-500 focus:ring-1 focus:ring-gray-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
+    class="textarea textarea-bordered
+         /* Change to */ /* Use
+         the plugin to hide
+         the scrollbar
+         while allowing scroll */ scrollbar-none flex-1
+         resize-none
+         overflow-hidden overflow-y-auto rounded-lg border-gray-300 py-[9px] leading-5 focus:border-sky-500 focus:ring-1 focus:ring-gray-500 focus:outline-none disabled:cursor-not-allowed
+         disabled:bg-gray-100"
     style="height: 40px; min-height: 40px;"
   ></textarea>
 

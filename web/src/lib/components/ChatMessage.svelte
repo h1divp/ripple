@@ -22,7 +22,9 @@
           </div>
         </div>
       {:else}
-        <div class="mt-1 hidden text-center text-xs leading-tight text-gray-600 group-hover:block">
+        <div
+          class="mt-1 hidden text-center text-xs leading-tight text-gray-600 select-none group-hover:block"
+        >
           {showDetails ? fullDateString : timeString}
         </div>
       {/if}
