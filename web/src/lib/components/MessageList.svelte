@@ -19,7 +19,7 @@
 <div
   bind:this={scrollContainer}
   class="bg-base-200 flex-1 space-y-1 overflow-y-auto
-         lg:p-4"
+         lg:p-4 custom-scrollbar"
 >
   {#each messages as msg, i (msg.id)}
     {#if msg.type === 'system'}
