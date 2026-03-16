@@ -52,15 +52,19 @@ Nice to haves
   - allow a user to expand their radius to a larger present (e.g. 50m, 200m, 1km, etc).
   - only let users talk to eachother within the same radius, but also who have the *same radius setting*
   - this allows for a higher chance of interaction (making the app more enjoyable) while still keeping some locality. i.e. people in the same city can talk to eachother if theres no-one in the same building in chat
-- try out terraform 
+- try out terraform
+- jp/eng localization, check user agent for default language
 
 Dev slice-of-life
 - versioned deployments
 - good observability
 - sharded db
 - testing :)
+  - would be nice to have a script for load testing ws connections and flood of chat messages
 
 UI
 - i would like it to be a bit more stylized than just boilerplate, but that's not very important early on
 - opengraph
 - visual indictator (like 0.1s blink) for when the user's location is updated
+- (on desktop) drag-to-resize chatbox
+- clicking on the logo at the top should show a popup with an explanation, maybe link to blogpost.
