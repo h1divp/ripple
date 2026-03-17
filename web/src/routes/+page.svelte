@@ -12,11 +12,10 @@
   import MessageList from '$lib/components/MessageList.svelte';
   import ChatInput from '$lib/components/ChatInput.svelte';
 
-  let displayName = $state('anon');
   let nearbyCounter = $state(0);
 
   onMount(() => {
-    connect(displayName);
+    connect($userId);
   });
 </script>
 

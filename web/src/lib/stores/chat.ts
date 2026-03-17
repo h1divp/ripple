@@ -11,9 +11,9 @@ export const userId = writable(crypto.randomUUID());
 
 let socket: WebSocket;
 
-export function connect(displayName: string) {
+export function connect(userId: string) {
   // cannot send displayName over as json body since this is not http, so we use query params
-  const connUrl = `${PUBLIC_WS_URL}?displayName=${displayName}`;
+  const connUrl = `${PUBLIC_WS_URL}?userId=${userId}`;
   socket = new WebSocket(connUrl);
 
   socket.onopen = () => isConnected.set(true);
@@ -48,7 +48,7 @@ export function connect(displayName: string) {
       // Add new message from another user
       return [...prev, { ...data, status: 'sent' }];
     });
-  };
+ };
 }
 
 export function sendMessage(text: string) {
