@@ -10,7 +10,7 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		// Needed to interact with Svelte(Kit) during development. Should be restricted to domain for prod.
+		// Needed to interact with Svelte during development. Should be restricted to domain for prod.
 		return true
 	},
 }

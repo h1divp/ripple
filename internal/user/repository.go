@@ -15,7 +15,9 @@ import (
 type Repository struct {
 	logger zerolog.Logger
 	// db     *bob.DB
-	redis *redis.Client
+	rdb *redis.Client
+
+	sessionExpireTime int32
 }
 
 // func NewRepository(logger zerolog.Logger, db *bob.Executor, rdb *redis.Client) *repository {
@@ -23,7 +25,8 @@ func NewRepository(logger zerolog.Logger, rdb *redis.Client) *Repository {
 	return &Repository{
 		logger: logger.With().Str("repository", "user").Logger(),
 		// db:     db,
-		redis: rdb,
+		rdb:               rdb,
+		sessionExpireTime: int32(config.Load().SessionExpireTime),
 	}
 }
 
@@ -32,18 +35,26 @@ func NewRepository(logger zerolog.Logger, rdb *redis.Client) *Repository {
 func (r *Repository) SaveSession(ctx context.Context, s *Session) error {
 	key := fmt.Sprintf("session:%s", s.ID)
 
-	err := r.redis.HSet(ctx, key, s).Err()
+	err := r.rdb.HSet(ctx, key, s).Err()
 	if err != nil {
 		r.logger.Err(err).Msg("Failed to save session to redis")
 		return err
 	}
 
-	expireTime := config.Load().SessionExpireTime
-	err = r.redis.Expire(ctx, key, time.Duration(expireTime)*time.Minute).Err() // TODO: test
+	expireTime := r.sessionExpireTime
+	err = r.rdb.Expire(ctx, key, time.Duration(expireTime)*time.Minute).Err() // TODO: test
 	if err != nil {
 		r.logger.Err(err).Msg("Failed to set expiriation for session")
 		return err
 	}
 
 	return nil
+}
+
+func (r *Repository) UpdateLocation(ctx context.Context, userID string, lat, lon float64) error {
+	return r.rdb.GeoAdd(ctx, "user_locations", &redis.GeoLocation{
+		Name:      userID,
+		Latitude:  lat,
+		Longitude: lon,
+	}).Err()
 }
