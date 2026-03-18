@@ -44,8 +44,7 @@ func (h *Handler) HandleWS(w http.ResponseWriter, r *http.Request) {
 	clientLogger := h.logger.With().Str("userID", userID).Logger()
 
 	client := websocket.NewClient(h.hub, conn, userID, clientLogger)
-
-	h.hub.register <- client
+	h.hub.Register <- client
 
 	go client.ReadPump(h.service)
 	go client.WritePump()
