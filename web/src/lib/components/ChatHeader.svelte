@@ -16,7 +16,7 @@
   {/if}
   {#if locationError}
     <div
-      class="flex items-center justify-center rounded-lg border-4 border-solid border-red-800 bg-sky-100 p-1 text-sky-900 tooltip"
+      class="tooltip flex items-center justify-center rounded-lg border-4 border-solid border-red-800 bg-sky-100 p-1 text-sky-900"
     >
       <IconMapPinOff size={30} class="text-red-800" />
     </div>

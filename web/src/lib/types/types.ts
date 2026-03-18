@@ -7,7 +7,7 @@ export interface Message {
   type: MessageType;
   lat: number;
   lon: number;
-  
+
   text?: string;
   displayName?: string;
   senderId?: string;

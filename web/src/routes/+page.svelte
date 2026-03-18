@@ -29,7 +29,7 @@
         sendLocationPing(lat, lon);
       },
       (err) => {
-        console.error("Geolocation error:", err);
+        console.error('Geolocation error:', err);
         if (err.code === 1) {
           locationError = true;
         }

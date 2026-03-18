@@ -5,7 +5,7 @@
   let { messages, currentUserId } = $props();
   let scrollContainer: HTMLDivElement | undefined = $state();
 
-  const displayMessages = $derived(messages.filter(m => m.type !== 'location_update'));
+  const displayMessages = $derived(messages.filter((m) => m.type !== 'location_update'));
 
   // Auto-scroll to bottom when new messages arrive
   $effect(() => {
@@ -28,7 +28,9 @@
       <SystemMessage message={msg.text} />
     {:else}
       {@const isFirstInGroup =
-        i === 0 || displayMessages[i - 1].senderId !== msg.senderId || displayMessages[i - 1].type === 'system'}
+        i === 0 ||
+        displayMessages[i - 1].senderId !== msg.senderId ||
+        displayMessages[i - 1].type === 'system'}
       <ChatMessage
         message={msg}
         isMe={msg.senderId === currentUserId}

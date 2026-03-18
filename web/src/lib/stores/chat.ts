@@ -36,7 +36,7 @@ export function connect(userId: string) {
     //   nearbyCount.set(data.nearbyCount);
     //   return
     // }
-    if (data.type === "location_update") return;
+    if (data.type === 'location_update') return;
 
     messages.update((prev) => {
       const existingIndex = prev.findIndex((m) => m.id === data.id);
@@ -49,17 +49,19 @@ export function connect(userId: string) {
       // Add new message from another user
       return [...prev, { ...data, status: 'sent' }];
     });
- };
+  };
 }
 
 export function sendLocationPing(lat: number, lon: number) {
   if (socket?.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({
-      senderID: get(userID),
-      type: 'location_update',
-      lat,
-      lon,
-    }));
+    socket.send(
+      JSON.stringify({
+        senderID: get(userID),
+        type: 'location_update',
+        lat,
+        lon,
+      })
+    );
   }
 }
 
@@ -77,7 +79,7 @@ export function sendMessage(text: string) {
       timestamp: Date.now(),
       status: 'sending',
       lat: coords.lat,
-      lon: coords.lon
+      lon: coords.lon,
     };
 
     messages.update((prev) => [...prev, newMessage]);
