@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/h1divp/echo-chat-v2/internal/db"
 	"github.com/h1divp/echo-chat-v2/internal/logger"
+	"github.com/h1divp/echo-chat-v2/internal/websocket"
 )
 
 func main() {
@@ -31,16 +33,16 @@ func main() {
 	rdb := redis.NewClient(redisOpt)
 
 	// Dependency injections
-	// userRepo := user.NewRepository(logger, rdb)
-	// userSvc := user.NewService(userRepo)
-	// userHdl := user.NewHandler(logger, userSvc)
-
-	chatHub := chat.NewHub(logger, rdb)
-	go chatHub.Run()
-
+	wsHub := websocket.NewHub(logger)
 	chatRepo := chat.NewRepository(logger, rdb)
-	chatSvc := chat.NewService(logger, chatRepo, chatHub)
-	chatHdl := chat.NewHandler(logger, chatSvc, chatHub)
+	chatSvc := chat.NewService(logger, chatRepo, wsHub)
+	chatHdl := chat.NewHandler(logger, chatSvc, wsHub)
+
+	// Messy but needed...
+	wsHub.OnDisconnect = func(userID string) {
+		chatSvc.HandleDisconnect(context.Background(), userID)
+	}
+	go wsHub.Run()
 
 	api := api.New(&logger, nil, chatHdl)
 
