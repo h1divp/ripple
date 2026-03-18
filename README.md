@@ -12,7 +12,7 @@ This repository is currently not open for contribution, but contributors may be 
 ## MVP
 - chat room with main functionality
   - TODO:
-    - rate limiting (message length on both api/web), prevent spamming
+    - rate limiting: message length on both api/web, fast message sending
     - disconnect user if location cannot be retrieved, show error message
 - settings page/menu pop-up
 - optional auth
