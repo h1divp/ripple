@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/h1divp/echo-chat-v2/internal/chat/types"
 	"github.com/rs/zerolog"
 )
 
@@ -18,25 +19,29 @@ const (
 type Client struct {
 	Hub  *Hub
 	Conn *websocket.Conn
-	Send chan Message
+	Send chan types.Message
 	ID   string
 
 	logger zerolog.Logger
 }
 
-func NewClient(hub *Hub, conn *Conn, userID string, logger zerolog.Logger) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, userID string, logger zerolog.Logger) *Client {
 	return &Client{
 		Hub:    hub,
 		Conn:   conn,
-		Send:   make(chan Message),
+		Send:   make(chan types.Message),
 		ID:     userID,
 		logger: logger,
 	}
 }
 
-func (c *Client) ReadPump(service *Service) {
+type MessageHandler interface {
+	HandleIncomingMessage(ctx context.Context, msg types.Message) error
+}
+
+func (c *Client) ReadPump(handler MessageHandler) {
 	defer func() {
-		c.Hub.unregister <- c
+		c.Hub.Unregister <- c
 		c.Conn.Close()
 	}()
 
@@ -60,18 +65,25 @@ func (c *Client) ReadPump(service *Service) {
 			break
 		}
 
-		var msg Message
+		var msg types.Message
 		if err := json.Unmarshal(message, &msg); err != nil {
 			c.logger.Error().Err(err).Msg("Failed to unmarshal incoming message")
 			continue
 		}
 
-		c.logger.Debug().
-			Str("msgId", msg.ID).
-			Str("text", msg.Text).
-			Msg("Recieved incoming message")
+		if msg.Type == types.ChatMsgType && msg.Text != nil {
+			c.logger.Debug().
+				Str("msgId", msg.SenderID).
+				Str("text", *msg.Text).
+				Msg("Recieved chat message")
+		} else {
+			c.logger.Debug().
+				Str("msgId", msg.SenderID).
+				Str("type", msg.Type).
+				Msg("Recieved message")
+		}
 
-		service.HandleIncomingMessage(context.Background(), msg)
+		handler.HandleIncomingMessage(context.Background(), msg)
 	}
 }
 

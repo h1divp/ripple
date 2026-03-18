@@ -3,51 +3,51 @@ package websocket
 import (
 	"sync"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/h1divp/echo-chat-v2/internal/chat/types"
 	"github.com/rs/zerolog"
 )
 
 type Hub struct {
-	clients    map[string]*Client
-	broadcast  chan Message
-	register   chan *Client
-	unregister chan *Client
-	mu         sync.RWMutex
+	clients      map[string]*Client
+	Register     chan *Client
+	Unregister   chan *Client
+	OnDisconnect func(userID string)
 
+	mu     sync.RWMutex
 	logger zerolog.Logger
 }
 
-func NewHub(logger zerolog.Logger, rdb *redis.Client) *Hub {
+func NewHub(logger zerolog.Logger) *Hub {
 	return &Hub{
 		clients:    make(map[string]*Client),
-		broadcast:  make(chan Message),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-
-		logger: logger,
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
+		logger:     logger,
 	}
 }
 
 func (h *Hub) Run() {
 	for {
 		select {
-		case client := <-h.register:
+		case client := <-h.Register:
 			h.mu.Lock()
 			h.clients[client.ID] = client
 			h.mu.Unlock()
 
-		case client := <-h.unregister:
+		case client := <-h.Unregister:
 			h.mu.Lock()
 			if _, ok := h.clients[client.ID]; ok {
 				delete(h.clients, client.ID)
 				close(client.Send)
+
+				go h.OnDisconnect(client.ID)
 			}
 			h.mu.Unlock()
 		}
 	}
 }
 
-func (h *Hub) DeliverToLocalClients(userIDs []string, msg Message) {
+func (h *Hub) DeliverToLocalClients(userIDs []string, msg types.Message) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -56,7 +56,7 @@ func (h *Hub) DeliverToLocalClients(userIDs []string, msg Message) {
 			select {
 			case client.Send <- msg:
 			default:
-				// If a cliet's message buffer is full, then they are likely disconnected or are lagging,
+				// If a client's message buffer is full, then they are likely disconnected or are lagging,
 				// so we skip them to stay performant.
 			}
 		}
