@@ -11,12 +11,20 @@ This repository is currently not open for contribution, but contributors may be 
 
 ## MVP
 - chat room with main functionality
+  - TODO:
+    - rate limiting (message length on both api/web), prevent spamming
+    - disconnect user if location cannot be retrieved, show error message
 - settings page/menu pop-up
 - optional auth
   - allows for completely anonymous messaging
   - allows for quick onboarding
   - ip should still be stored in db for moderation purposes (temp ban)
   - users who want to want to chat showing reputation, keep dms etc, etc can sign up
+- trust
+  - each session and all users have a trust score
+  - if it goes negative past a certain threshhold, various things can happen
+    - a user cannot type for an allotted period of time
+    - user will have their session kicked
 
 Nice to haves
 - reactions
