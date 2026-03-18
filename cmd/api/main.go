@@ -42,9 +42,15 @@ func main() {
 	wsHub.OnDisconnect = func(userID string) {
 		chatSvc.HandleDisconnect(context.Background(), userID)
 	}
+
+	// Remove stale user_locations
+	if err := chatRepo.RemoveAllLocations(context.Background()); err != nil {
+		logger.Warn().Msg("Could not clean up stale user_locations from Redis.")
+	}
+
 	go wsHub.Run()
 
-	api := api.New(&logger, nil, chatHdl)
+	api := api.New(&logger, chatHdl)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
