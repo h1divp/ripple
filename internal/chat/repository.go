@@ -56,3 +56,13 @@ func (r *Repository) RemoveUserLocation(ctx context.Context, userID string) erro
 	r.logger.Debug().Str("UserID", userID).Msg("Removed user location")
 	return nil
 }
+
+func (r *Repository) RemoveAllLocations(ctx context.Context) error {
+	err := r.rdb.Del(ctx, userLocationsKey).Err()
+	if err != nil {
+		r.logger.Err(err).Msg("Failed to remove all locations during cleanup")
+		return err
+	}
+	r.logger.Info().Msg("Successfully removed all user_locations from Redis")
+	return nil
+}
