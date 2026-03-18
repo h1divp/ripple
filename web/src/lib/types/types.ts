@@ -1,13 +1,17 @@
-export type MessageType = 'chat' | 'system';
+export type MessageType = 'chat' | 'system' | 'location_update';
 export type MessageStatus = 'sending' | 'sent' | 'error';
 
 export interface Message {
   id: string;
-  text: string;
-  displayName: string;
-  timestamp: number;
-  status: MessageStatus;
   senderId: string;
-  avatarSeed: string;
-  type?: MessageType;
+  type: MessageType;
+  lat: number;
+  lon: number;
+
+  text?: string;
+  displayName?: string;
+  senderId?: string;
+  avatarSeed?: string;
+  timestamp?: number;
+  status?: MessageStatus;
 }

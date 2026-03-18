@@ -3,7 +3,7 @@
 
   let { message, isMe, showDetails } = $props();
 
-  const date = $derived(new Date(message.timestamp));
+  const date = $derived(new Date(message.timestamp ?? Date.now()));
   const timeString = $derived(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
   const fullDateString = $derived(
     date.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
@@ -34,7 +34,7 @@
       {#if showDetails}
         <div class="flex items-baseline gap-2">
           <span class="text-md font-bold text-sky-900">
-            {message.displayName}
+            {message.displayName ?? 'Anonymous'}
           </span>
           <span class="text-xs text-gray-500">
             {fullDateString}
