@@ -2,6 +2,7 @@ import { writable, get } from 'svelte/store';
 import type { Message } from '$lib/types/types';
 import { PUBLIC_WS_URL } from '$env/static/public';
 import { generateRandomName, generateSessionSeed } from '$lib/utils/identity';
+import { joinMessage } from '$lib/utils/joinMessage';
 
 export const messages = writable<Message[]>([]);
 export const isConnected = writable(false);
@@ -26,18 +27,7 @@ export function connect(userId: string) {
   };
   socket.onclose = () => isConnected.set(false);
 
-  // TODO: refactor
-  const now = new Date();
-  const joinMsg: Message = {
-    id: crypto.randomUUID(),
-    senderId: crypto.randomUUID(),
-    lat: 0,
-    lon: 0,
-    status: 'sent',
-    type: 'system',
-    text: `joined at ${now.toLocaleString([], { hour: '2-digit', minute: '2-digit' })}`
-  };
-  messages.update((prev) => [...prev, joinMsg]);
+  messages.update((prev) => [...prev, joinMessage]);
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
