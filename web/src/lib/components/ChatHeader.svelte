@@ -14,5 +14,4 @@
       </span>
     </div>
   {/if}
-  <div class="invisible"></div>
 </div>
