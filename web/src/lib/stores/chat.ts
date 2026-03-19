@@ -8,14 +8,13 @@ export const messages = writable<Message[]>([]);
 export const isConnected = writable(false);
 export const userDisplayName = writable(generateRandomName());
 export const userAvatarSeed = writable(generateSessionSeed());
-export const userId = writable(crypto.randomUUID());
 export const userCoords = writable({ lat: 0, lon: 0 });
 
 let socket: WebSocket;
 
-export function connect(userId: string) {
+export function connect() {
   // cannot send displayName over as json body since this is not http, so we use query params
-  const connUrl = `${PUBLIC_WS_URL}?userId=${userId}`;
+  const connUrl = `${PUBLIC_WS_URL}`;
   socket = new WebSocket(connUrl);
 
   socket.onopen = () => {
@@ -32,20 +31,17 @@ export function connect(userId: string) {
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
     // TODO: add nearby_update
-    // if (data.type === "nearby_update") {
-    //   nearbyCount.set(data.nearbyCount);
-    //   return
-    // }
     if (data.type === 'location_update') return;
 
     messages.update((prev) => {
+      // Make message change color when user recieves their own message back from the server
       const existingIndex = prev.findIndex((m) => m.id === data.id);
       if (existingIndex !== -1) {
-        // Update existing optimistic message
         const updated = [...prev];
         updated[existingIndex] = { ...data, status: 'sent' };
         return updated;
       }
+
       // Add new message from another user
       return [...prev, { ...data, status: 'sent' }];
     });
@@ -56,7 +52,6 @@ export function sendLocationPing(lat: number, lon: number) {
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(
       JSON.stringify({
-        senderID: get(userID),
         type: 'location_update',
         lat,
         lon,
@@ -75,7 +70,6 @@ export function sendMessage(text: string) {
       text: text,
       displayName: get(userDisplayName),
       avatarSeed: get(userAvatarSeed),
-      senderId: get(userId),
       timestamp: Date.now(),
       status: 'sending',
       lat: coords.lat,

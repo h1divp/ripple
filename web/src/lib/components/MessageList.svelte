@@ -2,7 +2,7 @@
   import ChatMessage from './ChatMessage.svelte';
   import SystemMessage from './SystemMessage.svelte';
 
-  let { messages, currentUserId } = $props();
+  let { messages } = $props();
   let scrollContainer: HTMLDivElement | undefined = $state();
 
   const displayMessages = $derived(messages.filter((m) => m.type !== 'location_update'));
@@ -33,6 +33,7 @@
         displayMessages[i - 1].type === 'system'}
       <ChatMessage
         message={msg}
+        <!--TODO: refactor while adhering to the new session logic-->
         isMe={msg.senderId === currentUserId}
         showDetails={isFirstInGroup}
       />

@@ -13,6 +13,7 @@ import (
 	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/h1divp/echo-chat-v2/internal/db"
 	"github.com/h1divp/echo-chat-v2/internal/logger"
+	"github.com/h1divp/echo-chat-v2/internal/session"
 	"github.com/h1divp/echo-chat-v2/internal/websocket"
 )
 
@@ -33,6 +34,11 @@ func main() {
 	rdb := redis.NewClient(redisOpt)
 
 	// Dependency injections
+	hashKey := []byte(cfg.CookieHashKey)
+	blockKey := []byte(cfg.CookieBlockKey)
+	sessionMgr := session.NewManager(rdb, hashKey, blockKey)
+	sessionHdl := session.NewHandler(logger, sessionMgr)
+
 	wsHub := websocket.NewHub(logger)
 	chatRepo := chat.NewRepository(logger, rdb)
 	chatSvc := chat.NewService(logger, chatRepo, wsHub)
@@ -44,13 +50,13 @@ func main() {
 	}
 
 	// Remove stale user_locations
+	// We do not defer in case of needing to clean up potentially after a panic
 	if err := chatRepo.RemoveAllLocations(context.Background()); err != nil {
 		logger.Warn().Msg("Could not clean up stale user_locations from Redis.")
 	}
 
 	go wsHub.Run()
-
-	api := api.New(&logger, chatHdl)
+	api := api.New(&logger, sessionHdl, sessionMgr, chatHdl)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

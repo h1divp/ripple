@@ -9,6 +9,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const sessionIdKey = "session_id"
+
 type Handler struct {
 	logger   zerolog.Logger
 	service  *Service
@@ -26,12 +28,10 @@ func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub) *Ha
 	}
 }
 
-func (h *Handler) HandleWS(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("userId")
-	if userID == "" {
-		h.logger.Warn().Msg("Connection attempt was made without a userID")
-		http.Error(w, "Missing parameter userId", http.StatusBadRequest)
-		return
+func (h *Handler) JoinChat(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(sessionIdKey).(string)
+	if !ok || userID == "" {
+		http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
 	}
 
 	conn, err := h.upgrader.Upgrade(w, r, nil)

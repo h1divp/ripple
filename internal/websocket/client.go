@@ -45,10 +45,9 @@ func (c *Client) ReadPump(handler MessageHandler) {
 		c.Conn.Close()
 	}()
 
-	// The default read deadline isn't automatically extended by Gorilla
-	// so we set a custom pong handler and deadline after every pong.
-	// This is important so we can remove dead connections
-	// accurately (the ones that miss the deadline).
+	// For safe and accurate cleanup we use timeouts for connections. We "ping" our
+	// connection and expect a "pong" in return. If the pong doesn't make a deadline,
+	// we assume that the connection is dead and clean it up.
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.Conn.SetPongHandler(func(string) error {
 		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
