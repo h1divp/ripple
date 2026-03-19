@@ -8,16 +8,20 @@ import (
 
 	"github.com/h1divp/echo-chat-v2/internal/chat"
 	"github.com/h1divp/echo-chat-v2/internal/config"
+	"github.com/h1divp/echo-chat-v2/internal/session"
 )
 
 type Api struct {
-	Router      *chi.Mux
-	Logger      *zerolog.Logger
-	ChatHandler *chat.Handler
+	Router         *chi.Mux
+	Logger         *zerolog.Logger
+	SessionHandler *session.Handler
+	SessionManager *session.Manager
+	ChatHandler    *chat.Handler
 }
 
-func New(logger *zerolog.Logger, chatHdl *chat.Handler) *Api {
+func New(logger *zerolog.Logger, sessionHdl *session.Handler, sessionMgr *session.Manager, chatHdl *chat.Handler) *Api {
 	r := chi.NewRouter()
+	r.Use(SessionMiddleware(sessionMgr))
 	r.Use(middleware.Recoverer)
 
 	api := &Api{
@@ -43,5 +47,6 @@ func (api *Api) CreateRoutes() {
 		MaxAge:           300,
 	}))
 
-	api.Router.Get("/ws/chat", api.ChatHandler.HandleWS)
+	api.Router.Get("/ws/chat", api.ChatHandler.JoinChat)
+	api.Router.Get("/register", api.SessionHandler.Register)
 }
