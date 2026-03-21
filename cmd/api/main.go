@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -34,25 +35,35 @@ func main() {
 	rdb := redis.NewClient(redisOpt)
 
 	// Dependency injections
-	hashKey := []byte(cfg.CookieHashKey)
-	blockKey := []byte(cfg.CookieBlockKey)
-	sessionMgr := session.NewManager(rdb, hashKey, blockKey)
+	hashKey, err := base64.StdEncoding.DecodeString(cfg.CookieHashKey)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to decide COOKIE_HASH_KEY")
+	}
+	blockKey, err := base64.StdEncoding.DecodeString(cfg.CookieBlockKey)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to decide COOKIE_BLOCK_KEY")
+	}
+
+	sessionMgr := session.NewManager(logger, rdb, hashKey, blockKey)
 	sessionHdl := session.NewHandler(logger, sessionMgr)
 
 	wsHub := websocket.NewHub(logger)
 	chatRepo := chat.NewRepository(logger, rdb)
-	chatSvc := chat.NewService(logger, chatRepo, wsHub)
-	chatHdl := chat.NewHandler(logger, chatSvc, wsHub)
+	chatSvc := chat.NewService(logger, chatRepo, wsHub, sessionMgr)
+	chatHdl := chat.NewHandler(logger, chatSvc, wsHub, sessionMgr)
 
 	// Messy but needed...
-	wsHub.OnDisconnect = func(userID string) {
-		chatSvc.HandleDisconnect(context.Background(), userID)
+	wsHub.OnDisconnect = func(sessionID string, userID string) {
+		chatSvc.HandleDisconnect(context.Background(), sessionID, userID)
 	}
 
 	// Remove stale user_locations
 	// We do not defer in case of needing to clean up potentially after a panic
 	if err := chatRepo.RemoveAllLocations(context.Background()); err != nil {
 		logger.Warn().Msg("Could not clean up stale user_locations from Redis.")
+	}
+	if err := sessionMgr.RemoveAllSessions(context.Background()); err != nil {
+		logger.Warn().Msg("Could not clean up stale sessions from Redis.")
 	}
 
 	go wsHub.Run()
