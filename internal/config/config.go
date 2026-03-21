@@ -19,6 +19,7 @@ type Config struct {
 	MessageSearchRadius  float64  `env:"MESSAGE_SEARCH_RADIUS_METERS"`
 	CookieHashKey        string   `env:"COOKIE_HASH_KEY"`
 	CookieBlockKey       string   `env:"COOKIE_BLOCK_KEY"`
+	IsProd               bool     `env:"IS_PROD" envDefault:"false"`
 }
 
 func Load() *Config {
