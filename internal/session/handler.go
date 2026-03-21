@@ -3,6 +3,7 @@ package session
 import (
 	"net/http"
 
+	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/rs/zerolog"
 )
 
@@ -11,12 +12,14 @@ const sessionIdKey = "session_id"
 type Handler struct {
 	logger  zerolog.Logger
 	manager *Manager
+	config  config.Config
 }
 
-func NewHandler(logger zerolog.Logger, mgr *Manager) *Handler {
+func NewHandler(logger zerolog.Logger, mgr *Manager, cfg config.Config) *Handler {
 	return &Handler{
 		logger:  logger,
 		manager: mgr,
+		config:  cfg,
 	}
 }
 
@@ -37,7 +40,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		Value:    signed,
 		Path:     "/",
 		HttpOnly: true,
-		// Secure:   true, // should be changed to true when using https
+		Secure:   h.config.IsProd,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   3600, // session to be extended once a message is sent
 	})

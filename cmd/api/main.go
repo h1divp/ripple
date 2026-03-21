@@ -45,7 +45,7 @@ func main() {
 	}
 
 	sessionMgr := session.NewManager(logger, rdb, hashKey, blockKey)
-	sessionHdl := session.NewHandler(logger, sessionMgr)
+	sessionHdl := session.NewHandler(logger, sessionMgr, *cfg)
 
 	wsHub := websocket.NewHub(logger)
 	chatRepo := chat.NewRepository(logger, rdb)
