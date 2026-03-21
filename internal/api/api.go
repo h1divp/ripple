@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/rs/zerolog"
 
@@ -13,21 +13,35 @@ import (
 
 type Api struct {
 	Router         *chi.Mux
-	Logger         *zerolog.Logger
 	SessionHandler *session.Handler
 	SessionManager *session.Manager
 	ChatHandler    *chat.Handler
+
+	logger *zerolog.Logger
 }
 
 func New(logger *zerolog.Logger, sessionHdl *session.Handler, sessionMgr *session.Manager, chatHdl *chat.Handler) *Api {
 	r := chi.NewRouter()
-	r.Use(SessionMiddleware(sessionMgr))
+
+	AllowedOrigins := config.Load().AllowedOrigins
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   AllowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+	r.Use(SessionMiddleware(sessionMgr, logger))
 	r.Use(middleware.Recoverer)
 
 	api := &Api{
-		Router:      r,
-		Logger:      logger,
-		ChatHandler: chatHdl,
+		Router:         r,
+		logger:         logger,
+		SessionHandler: sessionHdl,
+		SessionManager: sessionMgr,
+		ChatHandler:    chatHdl,
 	}
 
 	api.CreateRoutes()
@@ -36,17 +50,6 @@ func New(logger *zerolog.Logger, sessionHdl *session.Handler, sessionMgr *sessio
 }
 
 func (api *Api) CreateRoutes() {
-	AllowedOrigins := config.Load().AllowedOrigins
-
-	api.Router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   AllowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
-
-	api.Router.Get("/ws/chat", api.ChatHandler.JoinChat)
-	api.Router.Get("/register", api.SessionHandler.Register)
+	api.Router.Get("/chat/ws", api.ChatHandler.JoinChat)
+	api.Router.Post("/register", api.SessionHandler.Register)
 }
