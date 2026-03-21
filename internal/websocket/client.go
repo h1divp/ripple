@@ -16,22 +16,25 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 )
 
+// TODO: convert id types from string to uuid
 type Client struct {
-	Hub  *Hub
-	Conn *websocket.Conn
-	Send chan types.Message
-	ID   string
+	Hub       *Hub
+	Conn      *websocket.Conn
+	Send      chan types.Message
+	sessionID string
+	userID    string
 
 	logger zerolog.Logger
 }
 
-func NewClient(hub *Hub, conn *websocket.Conn, userID string, logger zerolog.Logger) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, sessionID string, userID string, logger zerolog.Logger) *Client {
 	return &Client{
-		Hub:    hub,
-		Conn:   conn,
-		Send:   make(chan types.Message),
-		ID:     userID,
-		logger: logger,
+		Hub:       hub,
+		Conn:      conn,
+		Send:      make(chan types.Message),
+		sessionID: sessionID,
+		userID:    userID,
+		logger:    logger,
 	}
 }
 
@@ -51,12 +54,13 @@ func (c *Client) ReadPump(handler MessageHandler) {
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.Conn.SetPongHandler(func(string) error {
 		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
-		c.logger.Info().Msg("Client disconnected")
+		c.logger.Debug().Msg("Client recieved pong")
 		return nil
 	})
 
 	for {
 		_, message, err := c.Conn.ReadMessage()
+		c.logger.Debug().Msg("Readpump recieved websocket message")
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				c.logger.Error().Err(err).Msg("unexpected close")
@@ -70,17 +74,17 @@ func (c *Client) ReadPump(handler MessageHandler) {
 			continue
 		}
 
-		if msg.Type == types.ChatMsgType && msg.Text != nil {
-			c.logger.Debug().
-				Str("msgId", msg.SenderID).
-				Str("text", *msg.Text).
-				Msg("Recieved chat message")
-		} else {
-			c.logger.Debug().
-				Str("msgId", msg.SenderID).
-				Str("type", msg.Type).
-				Msg("Recieved message")
-		}
+		// if msg.Type == types.ChatMsgType && msg.Text != nil {
+		// 	c.logger.Debug().
+		// 		Str("msgId", msg.SenderID).
+		// 		Str("text", *msg.Text).
+		// 		Msg("Recieved chat message")
+		// } else {
+		// 	c.logger.Debug().
+		// 		Str("msgId", msg.SenderID).
+		// 		Str("type", msg.Type).
+		// 		Msg("Recieved message")
+		// }
 
 		handler.HandleIncomingMessage(context.Background(), msg)
 	}
@@ -96,6 +100,7 @@ func (c *Client) WritePump() {
 	for {
 		select {
 		case message, ok := <-c.Send:
+			c.logger.Debug().Msg("Writepump recieved message")
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// Hub closed the channel.
@@ -108,6 +113,7 @@ func (c *Client) WritePump() {
 			}
 
 		case <-ticker.C:
+			c.logger.Debug().Msg("Writepump recieved ticker")
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
