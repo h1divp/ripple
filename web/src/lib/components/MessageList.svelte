@@ -26,17 +26,17 @@
   {#each displayMessages as msg, i (msg.id)}
     {#if msg.type === 'system'}
       <SystemMessage message={msg.text} />
-    {:else}
-      {@const isFirstInGroup =
+    <!-- {:else} -->
+      <!--TODO: refactor while adhering to the new session logic-->
+      <!-- <div {{@const isFirstInGroup =
         i === 0 ||
         displayMessages[i - 1].senderId !== msg.senderId ||
         displayMessages[i - 1].type === 'system'}
       <ChatMessage
         message={msg}
-        <!--TODO: refactor while adhering to the new session logic-->
         isMe={msg.senderId === currentUserId}
         showDetails={isFirstInGroup}
-      />
+      />} /div> -->
     {/if}
   {/each}
 </div>
