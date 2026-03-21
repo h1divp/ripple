@@ -15,16 +15,20 @@ This repository is currently not open for contribution, but contributors may be 
     - rate limiting: message length on both api/web, fast message sending
     - disconnect user if location cannot be retrieved, show error message
 - settings page/menu pop-up
+- add TTL to location entries
+  - i dont think this is a good idea for the sessions since we dont want to desync from the state of the websocket connections
+  - if geoindex isnt found an update could be requested from the client, if that fails then we need to show an error in UI
 - optional auth
   - allows for completely anonymous messaging
   - allows for quick onboarding
   - ip should still be stored in db for moderation purposes (temp ban)
   - users who want to want to chat showing reputation, keep dms etc, etc can sign up
 - trust
-  - each session and all users have a trust score
+  - each session should have a trust score
   - if it goes negative past a certain threshhold, various things can happen
     - a user cannot type for an allotted period of time
     - user will have their session kicked
+  - !! look up best practices for this
 
 Nice to haves
 - reactions
@@ -51,10 +55,12 @@ Nice to haves
 - user reputation
   - calculated based on things like amount of messages sent (activity), friends, reacted messages
   - could use up/down voting?
+    - actually probably a bad idea, since botted users could spam downvoted on someone. ill leave this idea here for the meantime though
   - "shadowmuting" idea:
     - user has been downvoted so frequently in a short period of time that their messages start being muted without the sendering knowing it was fully sent or not
     - natural way to deter hatespeech and bots without needing to flag things for moderation
     - can make it obvious too, i.e. disable message box for time period, pop up ban message, show less messages to user
+    - definitely dont want to use this in the wrong way, again look up best practices
 - add something reminiscent of 3ds streetpass 
 - when there are no users present in someones area, try the following
   - allow a user to expand their radius to a larger present (e.g. 50m, 200m, 1km, etc).
