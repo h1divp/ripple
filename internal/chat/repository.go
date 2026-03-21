@@ -53,7 +53,7 @@ func (r *Repository) RemoveUserLocation(ctx context.Context, userID string) erro
 		r.logger.Err(err).Str("UserID", userID).Msg("Failed to remove user location")
 		return err
 	}
-	r.logger.Debug().Str("UserID", userID).Msg("Removed user location")
+	r.logger.Debug().Str("UserID", userID).Msg("Deleted user location from redis")
 	return nil
 }
 
