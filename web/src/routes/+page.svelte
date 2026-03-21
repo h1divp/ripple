@@ -4,6 +4,7 @@
     messages,
     isConnected,
     connect,
+    getSession,
     sendMessage,
     userDisplayName,
     sendLocationPing,
@@ -16,28 +17,9 @@
   let nearbyCounter = $state(0);
   let locationError = $state(true);
 
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-    return null;
-  };
-
+  // TODO: decompose.
   onMount(async () => {
-    // get session cookie if none found
-    let sessionCookie = getCookie('session_id');
-    if (!sessionCookie) {
-      try {
-        const response = await fetch('/register', { method: 'POST' });
-        if (!response.ok) {
-          console.error('Session registration failed with status:', response.status);
-        }
-      } catch (err) {
-        console.error('Session registration failed:', err);
-      }
-    }
-
-    // create websocket connection
+    await getSession();
     connect();
 
     const watchId = navigator.geolocation.watchPosition(
@@ -66,7 +48,7 @@
       if (coords.lat !== 0 && $isConnected) {
         sendLocationPing(coords.lat, coords.lon);
       }
-    }, 15000);
+    }, 30000);
 
     return () => {
       navigator.geolocation.clearWatch(watchId);

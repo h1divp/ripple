@@ -1,6 +1,6 @@
 import { writable, get } from 'svelte/store';
 import type { Message } from '$lib/types/types';
-import { PUBLIC_WS_URL } from '$env/static/public';
+import { PUBLIC_API_WS_URL, PUBLIC_API_URL } from '$env/static/public';
 import { generateRandomName, generateSessionSeed } from '$lib/utils/identity';
 import { joinMessage } from '$lib/utils/joinMessage';
 
@@ -12,13 +12,37 @@ export const userCoords = writable({ lat: 0, lon: 0 });
 
 let socket: WebSocket;
 
+export async function getSession() {
+    const url = `${PUBLIC_API_URL}/register`;
+
+    // Even if we have a cookie, we cannot check for it here
+    // because of the httpOnly flag. however the browser will
+    // send cookies in requests using credentials: 'include',
+    // so we can check for it in the api.
+    // TODO: return as promise and handle appropriately
+    try {
+      const response = await fetch(url, {
+         method: 'POST',
+         credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('Session registration failed with status:', response.status);
+      }
+    } catch (err) {
+      console.error('Session registration failed:', err);
+    }
+}
+
 export function connect() {
   // cannot send displayName over as json body since this is not http, so we use query params
-  const connUrl = `${PUBLIC_WS_URL}`;
+  const connUrl = `${PUBLIC_API_WS_URL}/chat/ws`;
   socket = new WebSocket(connUrl);
 
   socket.onopen = () => {
     isConnected.set(true);
+    const joinTimeout = setTimeout(() => {
+        messages.update((prev) => [...prev, joinMessage]);
+    }, 500);
     const coords = get(userCoords);
     if (coords.lat !== 0) {
       sendLocationPing(coords.lat, coords.lon);
@@ -26,7 +50,6 @@ export function connect() {
   };
   socket.onclose = () => isConnected.set(false);
 
-  messages.update((prev) => [...prev, joinMessage]);
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
