@@ -4,11 +4,11 @@
     messages,
     isConnected,
     connect,
+    getSession,
     sendMessage,
     userDisplayName,
     sendLocationPing,
     userCoords,
-    userId,
   } from '$lib/stores/chat';
   import ChatHeader from '$lib/components/ChatHeader.svelte';
   import MessageList from '$lib/components/MessageList.svelte';
@@ -17,8 +17,10 @@
   let nearbyCounter = $state(0);
   let locationError = $state(true);
 
-  onMount(() => {
-    connect($userId);
+  // TODO: decompose.
+  onMount(async () => {
+    await getSession();
+    connect();
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -34,7 +36,11 @@
           locationError = true;
         }
       },
-      { enableHighAccuracy: true }
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60000,
+      }
     );
 
     const pingInterval = setInterval(() => {
@@ -42,7 +48,7 @@
       if (coords.lat !== 0 && $isConnected) {
         sendLocationPing(coords.lat, coords.lon);
       }
-    }, 15000);
+    }, 30000);
 
     return () => {
       navigator.geolocation.clearWatch(watchId);
@@ -54,7 +60,7 @@
 <div
   class="mx-auto flex h-screen max-w-2xl flex-col bg-sky-100 p-4 lg:border-r-4 lg:border-l-4 lg:border-solid lg:border-sky-800"
 >
-  <ChatHeader {isConnected} {nearbyCounter} {locationError} />
-  <MessageList messages={$messages} currentUserId={$userId} />
+  <ChatHeader {$isConnected} {nearbyCounter} {locationError} />
+  <MessageList messages={$messages}/>
   <ChatInput onSend={sendMessage} {isConnected} />
 </div>

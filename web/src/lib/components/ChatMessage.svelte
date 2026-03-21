@@ -14,7 +14,7 @@
 
 <div class="chat">
   <div class="group flex flex-row items-start py-0 hover:bg-black/5">
-    <div class="w-12 flex-shrink-0">
+    <div class="w-14 flex-shrink-0">
       {#if showDetails}
         <div class="chat-image avatar py-1">
           <div class="w-10 overflow-hidden rounded-full border-sky-900 bg-white">
@@ -23,7 +23,7 @@
         </div>
       {:else}
         <div
-          class="mt-1 hidden text-center text-xs leading-tight text-gray-600 select-none group-hover:block"
+          class="mt-1 hidden text-center text-xs leading-tight text-gray-600 select-none group-hover:block text-nowrap"
         >
           {showDetails ? fullDateString : timeString}
         </div>

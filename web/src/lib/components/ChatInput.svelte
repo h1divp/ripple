@@ -1,7 +1,7 @@
 <script lang="ts">
   let { onSend, isConnected } = $props();
   import { IconSend2, IconCloudOff } from '@tabler/icons-svelte';
-  import { userDisplayName, userAvatarSeed, userId } from '$lib/stores/chat';
+  import { userDisplayName, userAvatarSeed  } from '$lib/stores/chat';
 
   let newMessage = $state('');
   function handleSend() {
@@ -38,13 +38,10 @@
     oninput={autoResize}
     onkeydown={handleKeydown}
     disabled={!$isConnected}
-    placeholder="Send a message"
+    placeholder={$isConnected ? "Send a message" : "Disconnected"}
     rows="1"
     class="textarea textarea-bordered
-         /* Change to */ /* Use
-         the plugin to hide
-         the scrollbar
-         while allowing scroll */ scrollbar-none flex-1
+        scrollbar-none flex-1
          resize-none
          overflow-hidden overflow-y-auto rounded-lg border-gray-300 py-[9px] leading-5 focus:border-sky-500 focus:ring-1 focus:ring-gray-500 focus:outline-none disabled:cursor-not-allowed
          disabled:bg-gray-100"

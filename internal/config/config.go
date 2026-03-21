@@ -17,6 +17,8 @@ type Config struct {
 	AllowedOrigins       []string ``
 	SessionExpireTime    uint32   `env:"SESSION_EXPIRE_TIME_MIN"`
 	MessageSearchRadius  float64  `env:"MESSAGE_SEARCH_RADIUS_METERS"`
+	CookieHashKey        string   `env:"COOKIE_HASH_KEY"`
+	CookieBlockKey       string   `env:"COOKIE_BLOCK_KEY"`
 }
 
 func Load() *Config {

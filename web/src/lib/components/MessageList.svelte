@@ -2,7 +2,7 @@
   import ChatMessage from './ChatMessage.svelte';
   import SystemMessage from './SystemMessage.svelte';
 
-  let { messages, currentUserId } = $props();
+  let { messages } = $props();
   let scrollContainer: HTMLDivElement | undefined = $state();
 
   const displayMessages = $derived(messages.filter((m) => m.type !== 'location_update'));
@@ -26,8 +26,9 @@
   {#each displayMessages as msg, i (msg.id)}
     {#if msg.type === 'system'}
       <SystemMessage message={msg.text} />
-    {:else}
-      {@const isFirstInGroup =
+    <!-- {:else} -->
+      <!--TODO: refactor while adhering to the new session logic-->
+      <!-- <div {{@const isFirstInGroup =
         i === 0 ||
         displayMessages[i - 1].senderId !== msg.senderId ||
         displayMessages[i - 1].type === 'system'}
@@ -35,7 +36,7 @@
         message={msg}
         isMe={msg.senderId === currentUserId}
         showDetails={isFirstInGroup}
-      />
+      />} /div> -->
     {/if}
   {/each}
 </div>

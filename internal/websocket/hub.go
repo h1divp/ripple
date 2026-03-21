@@ -11,7 +11,7 @@ type Hub struct {
 	clients      map[string]*Client
 	Register     chan *Client
 	Unregister   chan *Client
-	OnDisconnect func(userID string)
+	OnDisconnect func(sessionID string, userID string)
 
 	mu     sync.RWMutex
 	logger zerolog.Logger
@@ -31,16 +31,23 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			h.mu.Lock()
-			h.clients[client.ID] = client
+			if _, exists := h.clients[client.userID]; exists {
+				// Reject duplicate connection
+				h.mu.Unlock()
+				client.Conn.Close()
+				continue
+			}
+			h.clients[client.userID] = client
+			h.logger.Debug().Str("userID", client.userID).Msg("Registered client")
 			h.mu.Unlock()
 
 		case client := <-h.Unregister:
 			h.mu.Lock()
-			if _, ok := h.clients[client.ID]; ok {
-				delete(h.clients, client.ID)
-				close(client.Send)
 
-				go h.OnDisconnect(client.ID)
+			if existing, ok := h.clients[client.userID]; ok && existing == client {
+				delete(h.clients, client.userID)
+				close(client.Send)
+				go h.OnDisconnect(client.sessionID, client.userID)
 			}
 			h.mu.Unlock()
 		}
@@ -61,4 +68,12 @@ func (h *Hub) DeliverToLocalClients(userIDs []string, msg types.Message) {
 			}
 		}
 	}
+}
+
+func (h *Hub) HasClient(userID string) bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	_, ok := h.clients[userID]
+	return ok
 }

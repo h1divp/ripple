@@ -5,32 +5,63 @@ import (
 
 	gorilla "github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/config"
+	"github.com/h1divp/echo-chat-v2/internal/session"
 	"github.com/h1divp/echo-chat-v2/internal/websocket"
 	"github.com/rs/zerolog"
 )
 
+const (
+	userIdKey    = "user_id"
+	sessionIdKey = "session_id"
+)
+
 type Handler struct {
-	logger   zerolog.Logger
-	service  *Service
-	hub      *websocket.Hub
-	upgrader gorilla.Upgrader
+	logger         zerolog.Logger
+	service        *Service
+	hub            *websocket.Hub
+	sessionManager *session.Manager
+	upgrader       gorilla.Upgrader
 }
 
-func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub) *Handler {
+func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub, sessionMgr *session.Manager) *Handler {
 	allowedOrigins := config.Load().AllowedOrigins
 	return &Handler{
-		logger:   logger.With().Str("handler", "chat").Logger(),
-		service:  service,
-		hub:      hub,
-		upgrader: websocket.NewUpgrader(allowedOrigins),
+		logger:         logger.With().Str("handler", "chat").Logger(),
+		service:        service,
+		hub:            hub,
+		sessionManager: sessionMgr,
+		upgrader:       websocket.NewUpgrader(allowedOrigins),
 	}
 }
 
-func (h *Handler) HandleWS(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("userId")
-	if userID == "" {
-		h.logger.Warn().Msg("Connection attempt was made without a userID")
-		http.Error(w, "Missing parameter userId", http.StatusBadRequest)
+func (h *Handler) JoinChat(w http.ResponseWriter, r *http.Request) {
+	// Check if session exists in redis
+	sessionID, ok := r.Context().Value(sessionIdKey).(string)
+	if !ok || sessionID == "" {
+		http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
+		return
+	}
+	// exists, err := h.sessionManager.HasSession(r.Context(), sessionID)
+	// if err != nil {
+	// 	h.logger.Err(err).Msg("Failed to check if session exists")
+	// 	http.Error(w, "Internal server error.", http.StatusInternalServerError)
+	// 	return
+	// }
+	// if !exists {
+	// 	http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
+	// 	return
+	// }
+
+	// Check if client exists in Hub
+	userID, ok := r.Context().Value(userIdKey).(string)
+	if !ok || userID == "" {
+		h.logger.Info().Msg("User attempted to join chat before session was created")
+		http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
+		return
+	}
+	if h.hub.HasClient(userID) {
+		h.logger.Info().Msg("User attempted to join chat while having an active connection")
+		http.Error(w, "You already have an active connection.", http.StatusTooManyRequests)
 		return
 	}
 
@@ -43,11 +74,9 @@ func (h *Handler) HandleWS(w http.ResponseWriter, r *http.Request) {
 
 	clientLogger := h.logger.With().Str("userID", userID).Logger()
 
-	client := websocket.NewClient(h.hub, conn, userID, clientLogger)
+	client := websocket.NewClient(h.hub, conn, sessionID, userID, clientLogger)
 	h.hub.Register <- client
-
 	go client.ReadPump(h.service)
 	go client.WritePump()
-
-	clientLogger.Info().Msg("Client connected successfully.")
+	clientLogger.Info().Msg("Client connected to chat.")
 }
