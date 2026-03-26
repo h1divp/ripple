@@ -74,18 +74,6 @@ func (c *Client) ReadPump(handler MessageHandler) {
 			continue
 		}
 
-		// if msg.Type == types.ChatMsgType && msg.Text != nil {
-		// 	c.logger.Debug().
-		// 		Str("msgId", msg.SenderID).
-		// 		Str("text", *msg.Text).
-		// 		Msg("Recieved chat message")
-		// } else {
-		// 	c.logger.Debug().
-		// 		Str("msgId", msg.SenderID).
-		// 		Str("type", msg.Type).
-		// 		Msg("Recieved message")
-		// }
-
 		handler.HandleIncomingMessage(context.Background(), msg)
 	}
 }
