@@ -41,6 +41,9 @@ func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessi
 }
 
 func (s *Service) HandleIncomingMessage(ctx context.Context, msg types.Message) error {
+	/*  TODO: handle message depending on type (runs msg.Handle(), which runs differently depending on the message type)
+	-
+	*/
 	logEvent := s.logger.Info().
 		Float64("lat", msg.Latitude).
 		Float64("lon", msg.Longitude)
