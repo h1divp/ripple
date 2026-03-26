@@ -54,14 +54,17 @@ func (h *Hub) Run() {
 	}
 }
 
-func (h *Hub) DeliverToLocalClients(userIDs []string, msg types.Message) {
+func (h *Hub) DeliverToLocalClients(userIDs []string, msg *types.ChatMessage) {
+	// TODO: make sure that this doesnt panic from a null pointer dereference of msg.
+	h.logger.Debug().Msg("DeliverToLocalClients(): recieved message")
+
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
 	for _, id := range userIDs {
 		if client, ok := h.clients[id]; ok {
 			select {
-			case client.Send <- msg:
+			case client.Send <- *msg:
 			default:
 				// If a client's message buffer is full, then they are likely disconnected or are lagging,
 				// so we skip them to stay performant.

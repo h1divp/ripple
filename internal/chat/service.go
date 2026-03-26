@@ -17,7 +17,7 @@ type Service struct {
 }
 
 type HubInterface interface {
-	DeliverToLocalClients(userIDs []string, msg types.Message)
+	DeliverToLocalClients(userIDs []string, msg *types.ChatMessage)
 }
 
 type SessionInterface interface {
@@ -40,14 +40,14 @@ func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessi
 	}
 }
 
-func (s *Service) HandleIncomingMessage(ctx context.Context, msg Message) error {
+func (s *Service) ProcessIncomingMessage(ctx context.Context, msg types.Message) error {
 	// Handle message depending on type (e.g. ChatMessage, LocationUpdate, etc)
-	err := msg.Handle(s, ctx)
-	if err != nil {
-		s.logger.Err(err).Msg("Could not handle message")
-		return err
+	switch msg := msg.(type) {
+	case *types.ChatMessage:
+		s.HandleChatMessage(msg, ctx)
+	case *types.LocationUpdate:
+		s.HandleLocationUpdate(msg, ctx)
 	}
-	return nil
 }
 
 func (s *Service) HandleDisconnect(ctx context.Context, sessionID string, userID string) {

@@ -16,8 +16,8 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 )
 
-// TODO: convert id types from string to uuid
 type Client struct {
+	// TODO: convert id types from string to uuid
 	Hub       *Hub
 	Conn      *websocket.Conn
 	Send      chan types.Message
@@ -39,7 +39,7 @@ func NewClient(hub *Hub, conn *websocket.Conn, sessionID string, userID string, 
 }
 
 type MessageHandler interface {
-	HandleIncomingMessage(ctx context.Context, msg types.Message) error
+	ProcessIncomingMessage(ctx context.Context, msg types.Message) error
 }
 
 func (c *Client) ReadPump(handler MessageHandler) {
@@ -69,12 +69,18 @@ func (c *Client) ReadPump(handler MessageHandler) {
 		}
 
 		var msg types.Message
+		/*
+			TODO: Fix incorrect unmarshall
+			 - the frontend can include a "type" field which we can partially unmarshall to an Envelope struct
+			 - depending on the type, unmarshall the marshall the json again but to the right type,
+			   and pass to ProcessIncomingMessage
+		*/
 		if err := json.Unmarshal(message, &msg); err != nil {
 			c.logger.Error().Err(err).Msg("Failed to unmarshal incoming message")
 			continue
 		}
 
-		handler.HandleIncomingMessage(context.Background(), msg)
+		handler.ProcessIncomingMessage(context.Background(), msg)
 	}
 }
 
