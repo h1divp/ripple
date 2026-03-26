@@ -73,7 +73,7 @@ func (r *Manager) RemoveAllSessions(ctx context.Context) error {
 		r.logger.Err(err).Msg("Failed to remove all sessions during cleanup")
 		return err
 	}
-	r.logger.Info().Msg("Successfully removed all sessions from Redis")
+	r.logger.Info().Msg("Successfully cleaned sessions in Redis")
 	return nil
 }
 
