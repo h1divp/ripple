@@ -40,35 +40,12 @@ func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessi
 	}
 }
 
-func (s *Service) HandleIncomingMessage(ctx context.Context, msg types.Message) error {
-	/*  TODO: handle message depending on type (runs msg.Handle(), which runs differently depending on the message type)
-	-
-	*/
-	logEvent := s.logger.Info().
-		Float64("lat", msg.Latitude).
-		Float64("lon", msg.Longitude)
-	if msg.Text != nil {
-		logEvent.Str("msg", *msg.Text)
-	}
-
-	// UpdateUserLocation: runs for both chat and location_update message types.
-	err := s.repo.UpdateUserLocation(ctx, msg.SenderID, msg.Latitude, msg.Longitude)
+func (s *Service) HandleIncomingMessage(ctx context.Context, msg Message) error {
+	// Handle message depending on type (e.g. ChatMessage, LocationUpdate, etc)
+	err := msg.Handle(s, ctx)
 	if err != nil {
-		s.logger.Err(err).Msg("Failed to update user location")
-	}
-
-	// TODO: refactor
-	if msg.Type == types.ChatMsgType {
-		nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, msg.Latitude, msg.Longitude, s.messageSearchRadius)
-		if err != nil {
-			s.logger.Err(err).Msg("Could not find nearby users")
-		}
-
-		recipients := append(nearbyIDs, msg.SenderID)
-
-		logEvent.Int("count", len(recipients)).Msg("Delivering message")
-		s.hub.DeliverToLocalClients(recipients, msg)
-		// TODO: Put onto redis pub/sub
+		s.logger.Err(err).Msg("Could not handle message")
+		return err
 	}
 	return nil
 }

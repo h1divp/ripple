@@ -1,9 +1,13 @@
 package chat
 
-import "github.com/google/uuid"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 type Message interface {
-	Handle()
+	Handle(s *Service, ctx context.Context) error
 }
 
 type ChatMessage struct {
@@ -45,12 +49,29 @@ type NearbyUpdate struct {
 	Delta int `json:"delta",omitempty`
 }
 
-func (m *ChatMessage) Handle() {
-	// Send to nearby users
+func (m *ChatMessage) Handle(s *Service, ctx context.Context) error {
+	// get lat & lon from user_locations. the db is our source of truth :)
+	// TODO: convert from messageSearchRadius to range stored in redis for user.
+	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, /*Latitude*/, /*Longitude*/, s.messageSearchRadius)
+	if err != nil {
+		s.logger.Err(err).Msg("Could not find nearby users")
+	}
+
+	recipients := append(nearbyIDs)
+
+	logEvent.Int("count", len(recipients)).Msg("Delivering message")
+	s.hub.DeliverToLocalClients(recipients, msg)
+	// TODO: Put onto redis pub/sub
 }
 
 func (m *LocationUpdate) Handle() {
 	// Update location in redis
+	// get userID 
+	err := s.repo.UpdateUserLocation(ctx, /*userID*/, m.Latitude, m.Longitude)
+	if err != nil {
+		s.logger.Err(err).Msg("Failed to update user location")
+	}
+	return nil
 }
 
 func (m *UsernameChange) Handle() {
