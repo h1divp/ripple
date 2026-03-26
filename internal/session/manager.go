@@ -52,9 +52,31 @@ func (m *Manager) CreateSession(ctx context.Context) (string, string, error) {
 		return "", "", err
 	}
 
+	// TODO: test to see if the signing works correctly (try copying into a different web browser)
 	signed, err := m.sc.Encode("session_id", sessionID)
 	m.logger.Debug().Msg("created session")
 	return signed, userID, err
+}
+
+func (m *Manager) GetSessionIDAndUserID(ctx context.Context, signedCookie string) (string, string, error) {
+	var sessionID string
+	if err := m.sc.Decode("session_id", signedCookie, &sessionID); err != nil {
+		m.logger.Err(err).Msg("Could not decode cookie value")
+		return "", "", err
+	}
+
+	userID, err := m.rdb.Get(ctx, fmt.Sprintf("session:%s", sessionID)).Result()
+	if err != nil {
+		m.logger.Err(err).Msg("Could not retrieve userID")
+		return "", "", err
+	}
+
+	return sessionID, userID, nil
+}
+
+func (m *Manager) HasSession(ctx context.Context, sessionID string) (bool, error) {
+	exists, error := m.rdb.Exists(ctx, fmt.Sprintf("session:%s", sessionID)).Result()
+	return exists > 0, error
 }
 
 func (m *Manager) DeleteSession(ctx context.Context, sessionID string) error {
@@ -75,26 +97,4 @@ func (r *Manager) RemoveAllSessions(ctx context.Context) error {
 	}
 	r.logger.Info().Msg("Successfully cleaned sessions in Redis")
 	return nil
-}
-
-// TODO: reorder
-func (m *Manager) GetSessionIDAndUserID(ctx context.Context, signedCookie string) (string, string, error) {
-	var sessionID string
-	if err := m.sc.Decode("session_id", signedCookie, &sessionID); err != nil {
-		m.logger.Err(err).Msg("Could not decode cookie value")
-		return "", "", err
-	}
-
-	userID, err := m.rdb.Get(ctx, fmt.Sprintf("session:%s", sessionID)).Result()
-	if err != nil {
-		m.logger.Err(err).Msg("Could not retrieve userID")
-		return "", "", err
-	}
-
-	return sessionID, userID, nil
-}
-
-func (m *Manager) HasSession(ctx context.Context, sessionID string) (bool, error) {
-	exists, error := m.rdb.Exists(ctx, fmt.Sprintf("session:%s", sessionID)).Result()
-	return exists > 0, error
 }
