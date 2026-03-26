@@ -41,16 +41,6 @@ func (h *Handler) JoinChat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
 		return
 	}
-	// exists, err := h.sessionManager.HasSession(r.Context(), sessionID)
-	// if err != nil {
-	// 	h.logger.Err(err).Msg("Failed to check if session exists")
-	// 	http.Error(w, "Internal server error.", http.StatusInternalServerError)
-	// 	return
-	// }
-	// if !exists {
-	// 	http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
-	// 	return
-	// }
 
 	// Check if client exists in Hub
 	userID, ok := r.Context().Value(userIdKey).(string)

@@ -63,6 +63,6 @@ func (r *Repository) RemoveAllLocations(ctx context.Context) error {
 		r.logger.Err(err).Msg("Failed to remove all locations during cleanup")
 		return err
 	}
-	r.logger.Info().Msg("Successfully removed all user_locations from Redis")
+	r.logger.Info().Msg("Successfully cleaned user_locations in Redis")
 	return nil
 }
