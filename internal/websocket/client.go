@@ -59,8 +59,8 @@ func (c *Client) ReadPump(handler MessageHandler) {
 	})
 
 	for {
-		_, message, err := c.Conn.ReadMessage()
-		c.logger.Debug().Msg("Readpump recieved websocket message")
+		_, rawMsg, err := c.Conn.ReadMessage()
+		// c.logger.Debug().Msg("Readpump recieved websocket message")
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				c.logger.Error().Err(err).Msg("unexpected close")
@@ -68,15 +68,31 @@ func (c *Client) ReadPump(handler MessageHandler) {
 			break
 		}
 
+		var envelope struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(rawMsg, &envelope); err != nil {
+			c.logger.Err(err).Msg("Could not parse incoming message.")
+			continue
+		}
+
 		var msg types.Message
-		/*
-			TODO: Fix incorrect unmarshall
-			 - the frontend can include a "type" field which we can partially unmarshall to an Envelope struct
-			 - depending on the type, unmarshall the marshall the json again but to the right type,
-			   and pass to ProcessIncomingMessage
-		*/
-		if err := json.Unmarshal(message, &msg); err != nil {
-			c.logger.Error().Err(err).Msg("Failed to unmarshal incoming message")
+		switch envelope.Type {
+		case "chat":
+			msg = &types.ChatMessage{}
+		case "location_update":
+			msg = &types.LocationUpdate{}
+		case "username_update":
+			msg = &types.UsernameUpdate{}
+		case "icon_update":
+			msg = &types.IconUpdate{}
+		default:
+			c.logger.Warn().Str("type", envelope.Type).Msg("Recieved unknown message type")
+			continue
+		}
+
+		if err := json.Unmarshal(rawMsg, msg); err != nil {
+			c.logger.Err(err).Msg("Failed to unmarshall concrete message.")
 			continue
 		}
 
