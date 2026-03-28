@@ -3,15 +3,16 @@ package websocket
 import (
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
 	"github.com/rs/zerolog"
 )
 
 type Hub struct {
-	clients      map[string]*Client
+	clients      map[uuid.UUID]*Client
 	Register     chan *Client
 	Unregister   chan *Client
-	OnDisconnect func(sessionID string, userID string)
+	OnDisconnect func(sessionID uuid.UUID, userID uuid.UUID)
 
 	mu     sync.RWMutex
 	logger zerolog.Logger
@@ -19,7 +20,7 @@ type Hub struct {
 
 func NewHub(logger zerolog.Logger) *Hub {
 	return &Hub{
-		clients:    make(map[string]*Client),
+		clients:    make(map[uuid.UUID]*Client),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		logger:     logger,
@@ -38,7 +39,7 @@ func (h *Hub) Run() {
 				continue
 			}
 			h.clients[client.userID] = client
-			h.logger.Debug().Str("userID", client.userID).Msg("Registered client")
+			h.logger.Debug().Str("userID", client.userID.String()).Msg("Registered client")
 			h.mu.Unlock()
 
 		case client := <-h.Unregister:
@@ -54,7 +55,7 @@ func (h *Hub) Run() {
 	}
 }
 
-func (h *Hub) DeliverToLocalClients(userIDs []string, msg *types.ChatMessage) {
+func (h *Hub) DeliverToLocalClients(userIDs []uuid.UUID, msg *types.ChatMessage) {
 	// TODO: make sure that this doesnt panic from a null pointer dereference of msg.
 	h.logger.Debug().Msg("DeliverToLocalClients(): recieved message")
 
@@ -73,7 +74,7 @@ func (h *Hub) DeliverToLocalClients(userIDs []string, msg *types.ChatMessage) {
 	}
 }
 
-func (h *Hub) HasClient(userID string) bool {
+func (h *Hub) HasClient(userID uuid.UUID) bool {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 

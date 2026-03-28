@@ -37,50 +37,61 @@ func NewManager(logger zerolog.Logger, rdb *redis.Client, hashKey, blockKey []by
 	}
 }
 
-func (m *Manager) CreateSession(ctx context.Context) (string, string, error) {
-	val, ok := ctx.Value(userCtxKey).(string)
+func (m *Manager) CreateSession(ctx context.Context) (string, uuid.UUID, error) {
+	val, ok := ctx.Value(userCtxKey).(uuid.UUID)
 	if ok {
-		m.logger.Debug().Str("userID", val).Msg("Session already exists")
-		return "", "", ErrSessionAlreadyExists
+		m.logger.Debug().Str("userID", val.String()).Msg("Session already exists")
+		return "", uuid.Nil, ErrSessionAlreadyExists
 	}
 
-	sessionID := uuid.New().String()
-	userID := uuid.New().String()
+	sessionID := uuid.New()
+	userID := uuid.New()
 
-	err := m.rdb.Set(ctx, fmt.Sprintf("session:%s", sessionID), userID, m.expiry).Err()
+	err := m.rdb.Set(ctx, fmt.Sprintf("session:%s", sessionID.String()), userID.String(), m.expiry).Err()
 	if err != nil {
-		return "", "", err
+		return "", uuid.Nil, err
 	}
 
 	// TODO: test to see if the signing works correctly (try copying into a different web browser)
-	signed, err := m.sc.Encode("session_id", sessionID)
+	signed, err := m.sc.Encode("session_id", sessionID.String())
+	m.logger.Debug().Str("sessionID", sessionID.String()).Msg("signing sessionID")
 	m.logger.Debug().Msg("created session")
 	return signed, userID, err
 }
 
-func (m *Manager) GetSessionIDAndUserID(ctx context.Context, signedCookie string) (string, string, error) {
-	var sessionID string
-	if err := m.sc.Decode("session_id", signedCookie, &sessionID); err != nil {
+func (m *Manager) GetSessionIDAndUserID(ctx context.Context, signedCookie string) (uuid.UUID, uuid.UUID, error) {
+	var sessionIDString string
+	if err := m.sc.Decode("session_id", signedCookie, &sessionIDString); err != nil {
 		m.logger.Err(err).Msg("Could not decode cookie value")
-		return "", "", err
+		return uuid.Nil, uuid.Nil, err
+	}
+	sessionID, err := uuid.Parse(sessionIDString)
+	if err != nil {
+		m.logger.Err(err).Msg("decrypted sessionID is malformed")
+		return uuid.Nil, uuid.Nil, err
 	}
 
-	userID, err := m.rdb.Get(ctx, fmt.Sprintf("session:%s", sessionID)).Result()
+	rawUserID, err := m.rdb.Get(ctx, fmt.Sprintf("session:%s", sessionID)).Result()
 	if err != nil {
 		m.logger.Err(err).Msg("Could not retrieve userID")
-		return "", "", err
+		return uuid.Nil, uuid.Nil, err
+	}
+	userID, err := uuid.Parse(rawUserID)
+	if err != nil {
+		m.logger.Warn().Msg("userID in redis was not stored as a parsable uuid")
+		return uuid.Nil, uuid.Nil, err
 	}
 
 	return sessionID, userID, nil
 }
 
-func (m *Manager) HasSession(ctx context.Context, sessionID string) (bool, error) {
-	exists, error := m.rdb.Exists(ctx, fmt.Sprintf("session:%s", sessionID)).Result()
+func (m *Manager) HasSession(ctx context.Context, sessionID uuid.UUID) (bool, error) {
+	exists, error := m.rdb.Exists(ctx, fmt.Sprintf("session:%s", sessionID.String())).Result()
 	return exists > 0, error
 }
 
-func (m *Manager) DeleteSession(ctx context.Context, sessionID string) error {
-	err := m.rdb.Del(ctx, fmt.Sprintf("session:%s", sessionID)).Err()
+func (m *Manager) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
+	err := m.rdb.Del(ctx, fmt.Sprintf("session:%s", sessionID.String())).Err()
 	if err != nil {
 		m.logger.Err(err).Msg("Failed to delete session from redis")
 		return err

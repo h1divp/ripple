@@ -40,13 +40,31 @@ func (r *Repository) GetLocationFromUserID(ctx context.Context, userID uuid.UUID
 	return pos[0].Latitude, pos[0].Longitude, nil
 }
 
-func (r *Repository) FindNearbyUserIDs(ctx context.Context, lat, lon, radius float64) ([]string, error) {
-	return r.rdb.GeoSearch(ctx, userLocationsKey, &redis.GeoSearchQuery{
+func (r *Repository) FindNearbyUserIDs(ctx context.Context, lat, lon, radius float64) ([]uuid.UUID, error) {
+	idStrings, err := r.rdb.GeoSearch(ctx, userLocationsKey, &redis.GeoSearchQuery{
 		Latitude:   lat,
 		Longitude:  lon,
 		Radius:     radius,
 		RadiusUnit: "m",
 	}).Result()
+
+	if err != nil {
+		r.logger.Err(err).Msg("Could not retrieve nearby user IDs.")
+		return nil, err
+	}
+
+	UUIDs := make([]uuid.UUID, 0, len(idStrings))
+	for _, idStr := range idStrings {
+		parsedID, err := uuid.Parse(idStr)
+		if err != nil {
+			r.logger.Warn().Msg("Skipping malformed UUID from Redis")
+			continue
+		}
+		UUIDs = append(UUIDs, parsedID)
+	}
+
+	return UUIDs, nil
+
 }
 
 func (r *Repository) UpdateUserLocation(ctx context.Context, userID uuid.UUID, lat, lon float64) error {
@@ -67,13 +85,13 @@ func (r *Repository) UpdateUserLocation(ctx context.Context, userID uuid.UUID, l
 	return nil
 }
 
-func (r *Repository) RemoveUserLocation(ctx context.Context, userID string) error {
-	err := r.rdb.ZRem(ctx, userLocationsKey, userID).Err()
+func (r *Repository) RemoveUserLocation(ctx context.Context, userID uuid.UUID) error {
+	err := r.rdb.ZRem(ctx, userLocationsKey, userID.String()).Err()
 	if err != nil {
-		r.logger.Err(err).Str("UserID", userID).Msg("Failed to remove user location")
+		r.logger.Err(err).Str("UserID", userID.String()).Msg("Failed to remove user location")
 		return err
 	}
-	r.logger.Debug().Str("UserID", userID).Msg("Deleted user location from redis")
+	r.logger.Debug().Str("UserID", userID.String()).Msg("Deleted user location from redis")
 	return nil
 }
 

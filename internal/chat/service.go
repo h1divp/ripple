@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
 	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/rs/zerolog"
@@ -17,11 +18,11 @@ type Service struct {
 }
 
 type HubInterface interface {
-	DeliverToLocalClients(userIDs []string, msg *types.ChatMessage)
+	DeliverToLocalClients(userIDs []uuid.UUID, msg *types.ChatMessage)
 }
 
 type SessionInterface interface {
-	DeleteSession(ctx context.Context, sessionID string) error
+	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
 }
 
 func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessionMgr SessionInterface) *Service {
@@ -40,17 +41,19 @@ func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessi
 	}
 }
 
-func (s *Service) ProcessIncomingMessage(ctx context.Context, msg types.Message) error {
+func (s *Service) ProcessIncomingMessage(ctx context.Context, msg types.Message, userID uuid.UUID) error {
 	// Handle message depending on type (e.g. ChatMessage, LocationUpdate, etc)
+	// TODO: error?
 	switch msg := msg.(type) {
 	case *types.ChatMessage:
-		s.HandleChatMessage(msg, ctx)
+		s.HandleChatMessage(msg, userID, ctx)
 	case *types.LocationUpdate:
-		s.HandleLocationUpdate(msg, ctx)
+		s.HandleLocationUpdate(msg, userID, ctx)
 	}
+	return nil
 }
 
-func (s *Service) HandleDisconnect(ctx context.Context, sessionID string, userID string) {
+func (s *Service) HandleDisconnect(ctx context.Context, sessionID uuid.UUID, userID uuid.UUID) {
 	err := s.repo.RemoveUserLocation(ctx, userID)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not delete location from redis while disconnecting user")

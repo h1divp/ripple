@@ -14,17 +14,14 @@ var ErrCouldNotGetUserID = errors.New("Could not get userID from context.")
 Handlers for message types in types/message.go
 */
 
-func (s *Service) HandleChatMessage(m *types.ChatMessage, ctx context.Context) error {
-	userID, ok := ctx.Value(userIdKey).(uuid.UUID)
-	if !ok {
-		s.logger.Warn().Msg("Attempted to handle message by a user with no stored userID")
-		return ErrCouldNotGetUserID
-	}
+func (s *Service) HandleChatMessage(m *types.ChatMessage, userID uuid.UUID, ctx context.Context) error {
 
 	lat, lon, err := s.repo.GetLocationFromUserID(ctx, userID)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not get location from userID")
 	}
+
+	s.logger.Debug().Str("content", m.Text).Msg("Recieved chat message")
 
 	// TODO: convert from messageSearchRadius to range stored in redis for user.
 	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)
@@ -38,14 +35,8 @@ func (s *Service) HandleChatMessage(m *types.ChatMessage, ctx context.Context) e
 	return nil
 }
 
-func (s *Service) HandleLocationUpdate(m *types.LocationUpdate, ctx context.Context) error {
-	// Update location in redis
-	userID, ok := ctx.Value(userIdKey).(uuid.UUID)
-	if !ok {
-		s.logger.Warn().Msg("Attempted to handle message by a user with no stored userID")
-		return ErrCouldNotGetUserID
-	}
-
+func (s *Service) HandleLocationUpdate(m *types.LocationUpdate, userID uuid.UUID, ctx context.Context) error {
+	// TODO: how should we get the userID?
 	err := s.repo.UpdateUserLocation(ctx, userID, m.Latitude, m.Longitude)
 	if err != nil {
 		s.logger.Err(err).Msg("Failed to update user location")

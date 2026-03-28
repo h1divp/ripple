@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
 	"github.com/rs/zerolog"
@@ -21,13 +22,13 @@ type Client struct {
 	Hub       *Hub
 	Conn      *websocket.Conn
 	Send      chan types.Message
-	sessionID string
-	userID    string
+	sessionID uuid.UUID
+	userID    uuid.UUID
 
 	logger zerolog.Logger
 }
 
-func NewClient(hub *Hub, conn *websocket.Conn, sessionID string, userID string, logger zerolog.Logger) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, sessionID uuid.UUID, userID uuid.UUID, logger zerolog.Logger) *Client {
 	return &Client{
 		Hub:       hub,
 		Conn:      conn,
@@ -39,7 +40,7 @@ func NewClient(hub *Hub, conn *websocket.Conn, sessionID string, userID string, 
 }
 
 type MessageHandler interface {
-	ProcessIncomingMessage(ctx context.Context, msg types.Message) error
+	ProcessIncomingMessage(ctx context.Context, msg types.Message, userID uuid.UUID) error
 }
 
 func (c *Client) ReadPump(handler MessageHandler) {
@@ -96,7 +97,7 @@ func (c *Client) ReadPump(handler MessageHandler) {
 			continue
 		}
 
-		handler.ProcessIncomingMessage(context.Background(), msg)
+		handler.ProcessIncomingMessage(context.Background(), msg, c.userID)
 	}
 }
 

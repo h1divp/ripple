@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 
@@ -53,7 +54,7 @@ func main() {
 	chatHdl := chat.NewHandler(logger, chatSvc, wsHub, sessionMgr)
 
 	// Messy but needed...
-	wsHub.OnDisconnect = func(sessionID string, userID string) {
+	wsHub.OnDisconnect = func(sessionID uuid.UUID, userID uuid.UUID) {
 		chatSvc.HandleDisconnect(context.Background(), sessionID, userID)
 	}
 
