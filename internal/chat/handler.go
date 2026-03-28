@@ -3,6 +3,7 @@ package chat
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	gorilla "github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/h1divp/echo-chat-v2/internal/session"
@@ -36,25 +37,15 @@ func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub, ses
 
 func (h *Handler) JoinChat(w http.ResponseWriter, r *http.Request) {
 	// Check if session exists in redis
-	sessionID, ok := r.Context().Value(sessionIdKey).(string)
-	if !ok || sessionID == "" {
+	sessionID, ok := r.Context().Value(sessionIdKey).(uuid.UUID)
+	if !ok {
 		http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
 		return
 	}
-	// exists, err := h.sessionManager.HasSession(r.Context(), sessionID)
-	// if err != nil {
-	// 	h.logger.Err(err).Msg("Failed to check if session exists")
-	// 	http.Error(w, "Internal server error.", http.StatusInternalServerError)
-	// 	return
-	// }
-	// if !exists {
-	// 	http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
-	// 	return
-	// }
 
 	// Check if client exists in Hub
-	userID, ok := r.Context().Value(userIdKey).(string)
-	if !ok || userID == "" {
+	userID, ok := r.Context().Value(userIdKey).(uuid.UUID)
+	if !ok {
 		h.logger.Info().Msg("User attempted to join chat before session was created")
 		http.Error(w, "You must have a session before joining the chat.", http.StatusUnauthorized)
 		return
@@ -72,7 +63,7 @@ func (h *Handler) JoinChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientLogger := h.logger.With().Str("userID", userID).Logger()
+	clientLogger := h.logger.With().Str("userID", userID.String()).Logger()
 
 	client := websocket.NewClient(h.hub, conn, sessionID, userID, clientLogger)
 	h.hub.Register <- client

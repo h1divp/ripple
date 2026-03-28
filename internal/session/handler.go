@@ -42,7 +42,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   h.config.IsProd,
 		SameSite: http.SameSiteLaxMode,
-    MaxAge:   3600, // TODO: session to be extended once a message is sent
+		MaxAge:   3600, // TODO: session to be extended once a message is sent
 	})
 	w.WriteHeader(http.StatusOK)
 }

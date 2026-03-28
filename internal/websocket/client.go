@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
 	"github.com/rs/zerolog"
@@ -16,18 +17,18 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 )
 
-// TODO: convert id types from string to uuid
 type Client struct {
+	// TODO: convert id types from string to uuid
 	Hub       *Hub
 	Conn      *websocket.Conn
 	Send      chan types.Message
-	sessionID string
-	userID    string
+	sessionID uuid.UUID
+	userID    uuid.UUID
 
 	logger zerolog.Logger
 }
 
-func NewClient(hub *Hub, conn *websocket.Conn, sessionID string, userID string, logger zerolog.Logger) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, sessionID uuid.UUID, userID uuid.UUID, logger zerolog.Logger) *Client {
 	return &Client{
 		Hub:       hub,
 		Conn:      conn,
@@ -39,7 +40,7 @@ func NewClient(hub *Hub, conn *websocket.Conn, sessionID string, userID string, 
 }
 
 type MessageHandler interface {
-	HandleIncomingMessage(ctx context.Context, msg types.Message) error
+	ProcessIncomingMessage(ctx context.Context, msg types.Message, userID uuid.UUID) error
 }
 
 func (c *Client) ReadPump(handler MessageHandler) {
@@ -59,8 +60,8 @@ func (c *Client) ReadPump(handler MessageHandler) {
 	})
 
 	for {
-		_, message, err := c.Conn.ReadMessage()
-		c.logger.Debug().Msg("Readpump recieved websocket message")
+		_, rawMsg, err := c.Conn.ReadMessage()
+		// c.logger.Debug().Msg("Readpump recieved websocket message")
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				c.logger.Error().Err(err).Msg("unexpected close")
@@ -68,25 +69,35 @@ func (c *Client) ReadPump(handler MessageHandler) {
 			break
 		}
 
-		var msg types.Message
-		if err := json.Unmarshal(message, &msg); err != nil {
-			c.logger.Error().Err(err).Msg("Failed to unmarshal incoming message")
+		var envelope struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(rawMsg, &envelope); err != nil {
+			c.logger.Err(err).Msg("Could not parse incoming message.")
 			continue
 		}
 
-		// if msg.Type == types.ChatMsgType && msg.Text != nil {
-		// 	c.logger.Debug().
-		// 		Str("msgId", msg.SenderID).
-		// 		Str("text", *msg.Text).
-		// 		Msg("Recieved chat message")
-		// } else {
-		// 	c.logger.Debug().
-		// 		Str("msgId", msg.SenderID).
-		// 		Str("type", msg.Type).
-		// 		Msg("Recieved message")
-		// }
+		var msg types.Message
+		switch envelope.Type {
+		case "chat":
+			msg = &types.ChatMessage{}
+		case "location_update":
+			msg = &types.LocationUpdate{}
+		case "username_update":
+			msg = &types.UsernameUpdate{}
+		case "icon_update":
+			msg = &types.IconUpdate{}
+		default:
+			c.logger.Warn().Str("type", envelope.Type).Msg("Recieved unknown message type")
+			continue
+		}
 
-		handler.HandleIncomingMessage(context.Background(), msg)
+		if err := json.Unmarshal(rawMsg, msg); err != nil {
+			c.logger.Err(err).Msg("Failed to unmarshall concrete message.")
+			continue
+		}
+
+		handler.ProcessIncomingMessage(context.Background(), msg, c.userID)
 	}
 }
 
