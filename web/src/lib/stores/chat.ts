@@ -1,10 +1,10 @@
 import { writable, get } from 'svelte/store';
-import type { Message } from '$lib/types/types';
+import type { LocationUpdate, ChatMessage } from '$lib/types/types';
 import { PUBLIC_API_WS_URL, PUBLIC_API_URL } from '$env/static/public';
 import { generateRandomName, generateSessionSeed } from '$lib/utils/identity';
 import { joinMessage } from '$lib/utils/joinMessage';
 
-export const messages = writable<Message[]>([]);
+export const messages = writable<ChatMessage[]>([]);
 export const isConnected = writable(false);
 export const userDisplayName = writable(generateRandomName());
 export const userAvatarSeed = writable(generateSessionSeed());
@@ -13,24 +13,24 @@ export const userCoords = writable({ lat: 0, lon: 0 });
 let socket: WebSocket;
 
 export async function getSession() {
-    const url = `${PUBLIC_API_URL}/register`;
+  const url = `${PUBLIC_API_URL}/register`;
 
-    // Even if we have a cookie, we cannot check for it here
-    // because of the httpOnly flag. however the browser will
-    // send cookies in requests using credentials: 'include',
-    // so we can check for it in the api.
-    // TODO: return as promise and handle appropriately
-    try {
-      const response = await fetch(url, {
-         method: 'POST',
-         credentials: 'include'
-      });
-      if (!response.ok) {
-        console.error('Session registration failed with status:', response.status);
-      }
-    } catch (err) {
-      console.error('Session registration failed:', err);
+  // Even if we have a cookie, we cannot check for it here
+  // because of the httpOnly flag. however the browser will
+  // send cookies in requests using credentials: 'include',
+  // so we can check for it in the api.
+  // TODO: return as promise and handle appropriately
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      console.error('Session registration failed with status:', response.status);
     }
+  } catch (err) {
+    console.error('Session registration failed:', err);
+  }
 }
 
 export function connect() {
@@ -40,16 +40,17 @@ export function connect() {
 
   socket.onopen = () => {
     isConnected.set(true);
-    const joinTimeout = setTimeout(() => {
-        messages.update((prev) => [...prev, joinMessage]);
+
+    setTimeout(() => {
+      messages.update((prev) => [...prev, joinMessage]);
     }, 500);
+
     const coords = get(userCoords);
     if (coords.lat !== 0) {
       sendLocationPing(coords.lat, coords.lon);
     }
   };
   socket.onclose = () => isConnected.set(false);
-
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
@@ -73,21 +74,18 @@ export function connect() {
 
 export function sendLocationPing(lat: number, lon: number) {
   if (socket?.readyState === WebSocket.OPEN) {
-    socket.send(
-      JSON.stringify({
-        type: 'location_update',
-        lat,
-        lon,
-      })
-    );
+    const locationMsg: LocationUpdate = {
+      type: 'location_update',
+      lat: lat,
+      lon: lon
+    };
+    socket.send(JSON.stringify(locationMsg));
   }
 }
 
 export function sendMessage(text: string) {
   if (socket && socket.readyState === WebSocket.OPEN) {
-    const coords = get(userCoords);
-
-    const newMessage: Message = {
+    const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       type: 'chat',
       text: text,
@@ -95,8 +93,6 @@ export function sendMessage(text: string) {
       avatarSeed: get(userAvatarSeed),
       timestamp: Date.now(),
       status: 'sending',
-      lat: coords.lat,
-      lon: coords.lon,
     };
 
     messages.update((prev) => [...prev, newMessage]);
