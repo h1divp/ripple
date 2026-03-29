@@ -13,17 +13,26 @@ interface BaseMessage {
   timestamp?: number;
 }
 
-export interface ChatMessage extends BaseMessage {
+export interface ChatMessageSend extends BaseMessage {
+  type: 'chat';
+  id: string;
+  text: string;
+  status: MessageStatus;
+}
+export interface ChatMessageRecieved extends BaseMessage {
   type: 'chat';
   id: string;
   text: string;
   displayName: string;
-  avatarSeed: string;
+  avatarUrl: string;
   status: MessageStatus;
 }
+export type ChatMessage = ChatMessageSend | ChatMessageRecieved;
+export type DisplayMessage = ChatMessageRecieved | SystemMessage;
 
 export interface SystemMessage extends BaseMessage {
   type: 'system';
+  id: string;
   text: string;
 }
 

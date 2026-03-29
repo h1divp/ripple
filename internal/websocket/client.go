@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
+	"github.com/h1divp/echo-chat-v2/internal/profile"
 	"github.com/rs/zerolog"
 )
 
@@ -24,23 +25,26 @@ type Client struct {
 	Send      chan types.Message
 	sessionID uuid.UUID
 	userID    uuid.UUID
+	profile   *profile.Profile
 
 	logger zerolog.Logger
 }
 
-func NewClient(hub *Hub, conn *websocket.Conn, sessionID uuid.UUID, userID uuid.UUID, logger zerolog.Logger) *Client {
+func NewClient(logger zerolog.Logger, hub *Hub, conn *websocket.Conn, sessionID uuid.UUID, userID uuid.UUID, profile *profile.Profile) *Client {
 	return &Client{
+		logger:    logger,
 		Hub:       hub,
 		Conn:      conn,
 		Send:      make(chan types.Message),
 		sessionID: sessionID,
 		userID:    userID,
-		logger:    logger,
+		profile:   profile,
 	}
 }
 
+// TODO: explain where this is linked
 type MessageHandler interface {
-	ProcessIncomingMessage(ctx context.Context, msg types.Message, userID uuid.UUID) error
+	ProcessIncomingMessage(ctx context.Context, msg types.Message, userID uuid.UUID, profile *profile.Profile) error
 }
 
 func (c *Client) ReadPump(handler MessageHandler) {
@@ -80,7 +84,7 @@ func (c *Client) ReadPump(handler MessageHandler) {
 		var msg types.Message
 		switch envelope.Type {
 		case "chat":
-			msg = &types.ChatMessage{}
+			msg = &types.ChatMessageInbound{}
 		case "location_update":
 			msg = &types.LocationUpdate{}
 		case "username_update":
@@ -97,7 +101,8 @@ func (c *Client) ReadPump(handler MessageHandler) {
 			continue
 		}
 
-		handler.ProcessIncomingMessage(context.Background(), msg, c.userID)
+		// TODO: refactor
+		handler.ProcessIncomingMessage(context.Background(), msg, c.userID, c.profile)
 	}
 }
 

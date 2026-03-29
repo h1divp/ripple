@@ -35,8 +35,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: echodb
-    ports:
-      - 5432:5432
     attach: false
     volumes:
       - postgres_data:/var/lib/postgres/data

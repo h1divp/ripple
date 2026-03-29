@@ -1,7 +1,12 @@
 <script lang="ts">
   import { IconCheck, IconLoader2, IconAlertCircle } from '@tabler/icons-svelte';
+  import type { ChatMessage } from '$lib/types/types';
 
-  let { message, isMe, showDetails } = $props();
+  let { message, isMe, showDetails }: {
+    message: ChatMessageRecieved;
+    isMe: boolean;
+    showDetails: boolean;
+  } = $props();
 
   const date = $derived(new Date(message.timestamp ?? Date.now()));
   const timeString = $derived(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -9,16 +14,16 @@
     date.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
   );
   const isSending = $derived(message.status === 'sending');
-  const avatarUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${message.avatarSeed}`;
+  console.log("MESSAGE", showDetails);
 </script>
 
 <div class="chat">
   <div class="group flex flex-row items-start py-0 hover:bg-black/5">
-    <div class="w-14 flex-shrink-0">
+    <div class="w-14 shrink-0">
       {#if showDetails}
         <div class="chat-image avatar py-1">
           <div class="w-10 overflow-hidden rounded-full border-sky-900 bg-white">
-            <img src={avatarUrl} alt="User Avatar" class="h-full w-full object-cover" />
+            <img src={message.avatarUrl} alt="User Avatar" class="h-full w-full object-cover" />
           </div>
         </div>
       {:else}
@@ -29,7 +34,6 @@
         </div>
       {/if}
     </div>
-
     <div class="flex flex-col overflow-hidden">
       {#if showDetails}
         <div class="flex items-baseline gap-2">
@@ -41,9 +45,8 @@
           </span>
         </div>
       {/if}
-
       <div
-        class="text-md leading-tight break-words duration-0"
+        class="text-md leading-tight wrap-break-word duration-0"
         class:text-sky-900={isSending}
         class:opacity-70={isSending}
         class:text-gray-800={!isSending}

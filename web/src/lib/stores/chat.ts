@@ -1,16 +1,49 @@
 import { writable, get } from 'svelte/store';
-import type { LocationUpdate, ChatMessage } from '$lib/types/types';
+import type { LocationUpdate, DisplayMessage, ChatMessageSend, ChatMessageRecieved } from '$lib/types/types';
 import { PUBLIC_API_WS_URL, PUBLIC_API_URL } from '$env/static/public';
-import { generateRandomName, generateSessionSeed } from '$lib/utils/identity';
 import { joinMessage } from '$lib/utils/joinMessage';
 
-export const messages = writable<ChatMessage[]>([]);
+export const messages = writable<DisplayMessage[]>([]);
 export const isConnected = writable(false);
-export const userDisplayName = writable(generateRandomName());
-export const userAvatarSeed = writable(generateSessionSeed());
 export const userCoords = writable({ lat: 0, lon: 0 });
 
+// TODO: may want to seperate messages by userId later, just saying
+export const userDisplayName = writable("Anonymous Bat");
+export const userAvatarUrl = writable("https://api.dicebear.com/9.x/icons/svg?backgroundColor=ffab91&seed=Adrian");
+export const userId = writable("");
+export const userTheme = writable("default");
+export const userPreferences = writable({});
+const storeMap = {
+  displayName: userDisplayName,
+  avatarUrl: userAvatarUrl,
+  userId: userId,
+  theme: userTheme,
+  preferences: userPreferences
+};
+
 let socket: WebSocket;
+
+export async function getProfile() {
+  const url = `${PUBLIC_API_URL}/profile`;
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      console.error('Profile retrieval failed with status:', response.status);
+      return;
+    }
+    const data = await response.json();
+    Object.entries(storeMap).forEach(([key, store]) => {
+      if (data[key] !== undefined) {
+        store.set(data[key]);
+      }
+    });
+  } catch (err) {
+    console.error('Profile retrieval failed:', err);
+  }
+}
 
 export async function getSession() {
   const url = `${PUBLIC_API_URL}/register`;
@@ -46,6 +79,7 @@ export function connect() {
     }, 500);
 
     const coords = get(userCoords);
+    // TODO: retrieve displayName
     if (coords.lat !== 0) {
       sendLocationPing(coords.lat, coords.lon);
     }
@@ -54,20 +88,30 @@ export function connect() {
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    // TODO: add nearby_update
-    if (data.type === 'location_update') return;
+    console.log("recieved message", event);
+    if (data.type !== 'chat') return;
+
+    const receivedMessage: ChatMessageRecieved = {
+      type: 'chat',
+      id: data.id,
+      text: data.text,
+      displayName: data.displayName || data.display_name, // Handle both camelCase and snake_case
+      avatarUrl: data.avatarUrl || data.avatar_url,       // Handle both camelCase and snake_case
+      timestamp: data.timestamp,
+      status: 'sent'
+    };
 
     messages.update((prev) => {
       // Make message change color when user recieves their own message back from the server
-      const existingIndex = prev.findIndex((m) => m.id === data.id);
+      const existingIndex = prev.findIndex((m) => m.id === receivedMessage.id);
       if (existingIndex !== -1) {
         const updated = [...prev];
-        updated[existingIndex] = { ...data, status: 'sent' };
+        updated[existingIndex] = receivedMessage;
         return updated;
       }
 
       // Add new message from another user
-      return [...prev, { ...data, status: 'sent' }];
+      return [...prev, receivedMessage];
     });
   };
 }
@@ -83,19 +127,24 @@ export function sendLocationPing(lat: number, lon: number) {
   }
 }
 
+// TODO: turn socket check into gaurd clause
 export function sendMessage(text: string) {
   if (socket && socket.readyState === WebSocket.OPEN) {
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+    const newMessage: ChatMessageSend = {
       type: 'chat',
+      id: crypto.randomUUID(),
       text: text,
-      displayName: get(userDisplayName),
-      avatarSeed: get(userAvatarSeed),
       timestamp: Date.now(),
       status: 'sending',
     };
 
-    messages.update((prev) => [...prev, newMessage]);
+    const displayMessage: ChatMessageRecieved = {
+      ...sendMessage,
+      displayName: get(userDisplayName),
+      avatarUrl: get(userAvatarUrl),
+    } as ChatMessageRecieved;
+
+    messages.update((prev) => [...prev, displayMessage]);
     socket.send(JSON.stringify(newMessage));
   }
 }

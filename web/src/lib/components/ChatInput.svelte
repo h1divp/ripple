@@ -1,7 +1,6 @@
 <script lang="ts">
   let { onSend, isConnected } = $props();
   import { IconSend2, IconCloudOff } from '@tabler/icons-svelte';
-  import { userDisplayName, userAvatarSeed  } from '$lib/stores/chat';
 
   let newMessage = $state('');
   function handleSend() {
@@ -43,7 +42,7 @@
     class="textarea textarea-bordered
         scrollbar-none flex-1
          resize-none
-         overflow-hidden overflow-y-auto rounded-lg border-gray-300 py-[9px] leading-5 focus:border-sky-500 focus:ring-1 focus:ring-gray-500 focus:outline-none disabled:cursor-not-allowed
+         overflow-hidden overflow-y-auto rounded-lg border-gray-300 py-2.25 leading-5 focus:border-sky-500 focus:ring-1 focus:ring-gray-500 focus:outline-none disabled:cursor-not-allowed
          disabled:bg-gray-100"
     style="height: 40px; min-height: 40px;"
   ></textarea>
