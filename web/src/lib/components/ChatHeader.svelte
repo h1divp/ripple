@@ -1,7 +1,8 @@
 <script lang="ts">
-  let { locationError } = $props();
-  import { isConnected, nearbyCount } from '$lib/stores/chat'
+  import { isConnected, nearbyCount } from '$lib/stores/chat';
   import { IconUsers, IconMapPinOff } from '@tabler/icons-svelte';
+  
+  let { locationError }: { locationError: boolean } = $props();
 </script>
 
 <div class="mb-4 flex flex-row flex-wrap justify-start gap-2">

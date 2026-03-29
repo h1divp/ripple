@@ -1,13 +1,13 @@
 <script lang="ts">
   import { IconCheck, IconLoader2, IconAlertCircle } from '@tabler/icons-svelte';
-  import type { ChatMessage } from '$lib/types/types';
-
+  import type { ChatMessageRecieved } from '$lib/types/types';
+  
   let { message, isMe, showDetails }: {
     message: ChatMessageRecieved;
     isMe: boolean;
     showDetails: boolean;
   } = $props();
-
+  
   const date = $derived(new Date(message.timestamp ?? Date.now()));
   const timeString = $derived(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
   const fullDateString = $derived(
