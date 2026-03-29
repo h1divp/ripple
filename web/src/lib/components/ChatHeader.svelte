@@ -1,5 +1,6 @@
 <script lang="ts">
-  let { isConnected, nearbyCounter, locationError } = $props();
+  let { nearbyCounter, locationError } = $props();
+  import { isConnected } from '$lib/stores/chat'
   import { IconUsers, IconMapPinOff } from '@tabler/icons-svelte';
 </script>
 
