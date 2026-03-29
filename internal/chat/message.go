@@ -20,6 +20,7 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 	lat, lon, err := s.repo.GetLocationFromUserID(ctx, userID)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not get location from userID")
+		return err
 	}
 
 	s.logger.Debug().Str("content", m.Text).Msg("Recieved chat message")
@@ -28,6 +29,7 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not find nearby users")
+		return err
 	}
 
 	s.logger.Debug().Int("count", len(nearbyIDs)).Msg("Delivering message")
