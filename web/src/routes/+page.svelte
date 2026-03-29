@@ -12,6 +12,11 @@
   let geolocationManager: ReturnType<typeof initializeGeolocation>;
 
   onMount(async () => {
+    if (geolocationManager) {
+      console.warn('Geolocation manager already exists');
+      geolocationManager.stop();
+    }
+    
     try {
       await initializeApp();
       geolocationManager = initializeGeolocation();
@@ -22,6 +27,17 @@
 
     return () => {
       geolocationManager?.stop();
+    };
+  });
+
+  let debugInterval: ReturnType<typeof setInterval>;
+    onMount(() => {
+    // Count active intervals every 5 seconds
+    debugInterval = setInterval(() => {
+    }, 5000);
+    
+    return () => {
+      clearInterval(debugInterval);
     };
   });
 </script>

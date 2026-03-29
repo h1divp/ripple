@@ -50,45 +50,50 @@ function handleSocketMessage(event: MessageEvent) {
 }
 
 export function sendLocationPing(lat: number, lon: number) {
-  if (socket?.readyState === WebSocket.OPEN) {
-    const locationMsg: LocationUpdate = {
-      type: 'location_update',
-      lat: lat,
-      lon: lon
-    };
-    socket.send(JSON.stringify(locationMsg));
+  if (socket?.readyState !== WebSocket.OPEN) {
+    console.log('Attempted to send location ping before socket was open.');
+    return;
   }
+
+  const locationMsg: LocationUpdate = {
+    type: 'location_update',
+    lat: lat,
+    lon: lon
+  };
+  socket.send(JSON.stringify(locationMsg));
 }
 
 export function sendMessage(text: string) {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    const currentDisplayName = get(userDisplayName);
-    const currentAvatarUrl = get(userAvatarUrl);
-
-    if (!currentDisplayName || currentDisplayName === "Anonymous Bat") {
-      console.warn("Profile not loaded yet, cannot send message");
-      return;
-    }
-
-    const newMessage: ChatMessageSend = {
-      type: 'chat',
-      id: crypto.randomUUID(),
-      text: text,
-      timestamp: Date.now(),
-      status: 'sending',
-    };
-
-    const displayMessage: ChatMessageRecieved = {
-      type: 'chat',
-      id: newMessage.id,
-      text: newMessage.text,
-      timestamp: newMessage.timestamp,
-      status: 'sending',
-      displayName: currentDisplayName,
-      avatarUrl: currentAvatarUrl,
-    };
-
-    messages.update((prev) => [...prev, displayMessage]);
-    socket.send(JSON.stringify(newMessage));
+  if (socket?.readyState !== WebSocket.OPEN) {
+    console.log('Attempted to send chat message before socket was open.');
   }
+
+  const currentDisplayName = get(userDisplayName);
+  const currentAvatarUrl = get(userAvatarUrl);
+
+  if (!currentDisplayName || currentDisplayName === "Anonymous Bat") {
+    console.warn("Profile not loaded yet, cannot send message");
+    return;
+  }
+
+  const newMessage: ChatMessageSend = {
+    type: 'chat',
+    id: crypto.randomUUID(),
+    text: text,
+    timestamp: Date.now(),
+    status: 'sending',
+  };
+
+  const displayMessage: ChatMessageRecieved = {
+    type: 'chat',
+    id: newMessage.id,
+    text: newMessage.text,
+    timestamp: newMessage.timestamp,
+    status: 'sending',
+    displayName: currentDisplayName,
+    avatarUrl: currentAvatarUrl,
+  };
+
+  messages.update((prev) => [...prev, displayMessage]);
+  socket.send(JSON.stringify(newMessage));
 }
