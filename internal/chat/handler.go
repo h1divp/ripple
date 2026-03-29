@@ -1,8 +1,6 @@
 package chat
 
 import (
-	"net/http"
-
 	"github.com/google/uuid"
 	gorilla "github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/config"
@@ -10,6 +8,7 @@ import (
 	"github.com/h1divp/echo-chat-v2/internal/session"
 	"github.com/h1divp/echo-chat-v2/internal/websocket"
 	"github.com/rs/zerolog"
+	"net/http"
 )
 
 const (

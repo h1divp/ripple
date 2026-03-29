@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/h1divp/echo-chat-v2/internal/chat/types"
 	"github.com/rs/zerolog"
 )
 
@@ -39,7 +38,7 @@ func (h *Hub) Run() {
 				continue
 			}
 			h.clients[client.userID] = client
-			h.logger.Debug().Str("name", client.profile.DisplayName).Msg("Registered client")
+			// h.logger.Debug().Str("name", client.profile.DisplayName).Msg("Registered client")
 			h.mu.Unlock()
 
 		case client := <-h.Unregister:
@@ -55,17 +54,17 @@ func (h *Hub) Run() {
 	}
 }
 
-func (h *Hub) DeliverToLocalClients(userIDs []uuid.UUID, msg *types.ChatMessageOutbound) {
-	h.logger.Debug().Msg("DeliverToLocalClients(): recieved message")
+func (h *Hub) DeliverToLocalClients(userIDs []uuid.UUID, msg any) {
+	// h.logger.Debug().Msg("DeliverToLocalClients(): recieved message")
 
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
 	for _, id := range userIDs {
-		h.logger.Debug().Str("userID", id.String()).Msg("Sending message to client")
+		// h.logger.Debug().Str("userID", id.String()).Msg("Sending message to client")
 		if client, ok := h.clients[id]; ok {
 			select {
-			case client.Send <- *msg:
+			case client.Send <- msg:
 			default:
 				// If a client's message buffer is full, then they are likely disconnected or are lagging,
 				// so we skip them to stay performant.
