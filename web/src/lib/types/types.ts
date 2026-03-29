@@ -28,6 +28,7 @@ export interface ChatMessageRecieved extends BaseMessage {
   status: MessageStatus;
 }
 export type ChatMessage = ChatMessageSend | ChatMessageRecieved;
+export type DisplayMessage = ChatMessageRecieved | SystemMessage;
 
 export interface SystemMessage extends BaseMessage {
   type: 'system';
