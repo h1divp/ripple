@@ -28,7 +28,9 @@ This repository is currently not open for contribution, but contributors may be 
   - if it goes negative past a certain threshhold, various things can happen
     - a user cannot type for an allotted period of time
     - user will have their session kicked
-  - !! look up best practices for this, should not be able to be gamed by bots
+  - !! look up best practices for this, should not be able to be gamed by botshttps://marcoislandchamber.org/marco-event/pancake-breakfast-3/
+- for transparency, add pop up modal when app loads asking for location access
+  - do so before the user obtains a session, because we can use the session an indicator that they agreed to use location (along with browser permission)
 
 Nice to haves
 - reactions
