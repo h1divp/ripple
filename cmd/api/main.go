@@ -15,6 +15,7 @@ import (
 	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/h1divp/echo-chat-v2/internal/db"
 	"github.com/h1divp/echo-chat-v2/internal/logger"
+	"github.com/h1divp/echo-chat-v2/internal/profile"
 	"github.com/h1divp/echo-chat-v2/internal/session"
 	"github.com/h1divp/echo-chat-v2/internal/websocket"
 )
@@ -35,7 +36,13 @@ func main() {
 	}
 	rdb := redis.NewClient(redisOpt)
 
-	// Dependency injections
+	/*
+		Dependency injections
+	*/
+
+	profileSvc := profile.NewService(logger)
+	profileHdl := profile.NewHandler(logger, profileSvc)
+
 	hashKey, err := base64.StdEncoding.DecodeString(cfg.CookieHashKey)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to decide COOKIE_HASH_KEY")
@@ -44,14 +51,13 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to decide COOKIE_BLOCK_KEY")
 	}
-
 	sessionMgr := session.NewManager(logger, rdb, hashKey, blockKey)
 	sessionHdl := session.NewHandler(logger, sessionMgr, *cfg)
 
 	wsHub := websocket.NewHub(logger)
 	chatRepo := chat.NewRepository(logger, rdb)
 	chatSvc := chat.NewService(logger, chatRepo, wsHub, sessionMgr)
-	chatHdl := chat.NewHandler(logger, chatSvc, wsHub, sessionMgr)
+	chatHdl := chat.NewHandler(logger, chatSvc, wsHub, profileSvc, sessionMgr)
 
 	// Messy but needed...
 	wsHub.OnDisconnect = func(sessionID uuid.UUID, userID uuid.UUID) {
@@ -68,7 +74,7 @@ func main() {
 	}
 
 	go wsHub.Run()
-	api := api.New(&logger, sessionHdl, sessionMgr, chatHdl)
+	api := api.New(&logger, sessionHdl, sessionMgr, chatHdl, profileHdl)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

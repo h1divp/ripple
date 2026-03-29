@@ -8,6 +8,7 @@ import (
 
 	"github.com/h1divp/echo-chat-v2/internal/chat"
 	"github.com/h1divp/echo-chat-v2/internal/config"
+	"github.com/h1divp/echo-chat-v2/internal/profile"
 	"github.com/h1divp/echo-chat-v2/internal/session"
 )
 
@@ -16,11 +17,12 @@ type Api struct {
 	SessionHandler *session.Handler
 	SessionManager *session.Manager
 	ChatHandler    *chat.Handler
+	ProfileHandler *profile.Handler
 
 	logger *zerolog.Logger
 }
 
-func New(logger *zerolog.Logger, sessionHdl *session.Handler, sessionMgr *session.Manager, chatHdl *chat.Handler) *Api {
+func New(logger *zerolog.Logger, sessionHdl *session.Handler, sessionMgr *session.Manager, chatHdl *chat.Handler, profileHdl *profile.Handler) *Api {
 	r := chi.NewRouter()
 
 	AllowedOrigins := config.Load().AllowedOrigins
@@ -42,6 +44,7 @@ func New(logger *zerolog.Logger, sessionHdl *session.Handler, sessionMgr *sessio
 		SessionHandler: sessionHdl,
 		SessionManager: sessionMgr,
 		ChatHandler:    chatHdl,
+		ProfileHandler: profileHdl,
 	}
 
 	api.CreateRoutes()
@@ -52,4 +55,5 @@ func New(logger *zerolog.Logger, sessionHdl *session.Handler, sessionMgr *sessio
 func (api *Api) CreateRoutes() {
 	api.Router.Get("/chat/ws", api.ChatHandler.JoinChat)
 	api.Router.Post("/register", api.SessionHandler.Register)
+	api.Router.Get("/profile", api.ProfileHandler.GetProfile)
 }

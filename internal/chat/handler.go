@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	gorilla "github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/config"
+	"github.com/h1divp/echo-chat-v2/internal/profile"
 	"github.com/h1divp/echo-chat-v2/internal/session"
 	"github.com/h1divp/echo-chat-v2/internal/websocket"
 	"github.com/rs/zerolog"
@@ -20,16 +21,18 @@ type Handler struct {
 	logger         zerolog.Logger
 	service        *Service
 	hub            *websocket.Hub
+	profileService *profile.Service
 	sessionManager *session.Manager
 	upgrader       gorilla.Upgrader
 }
 
-func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub, sessionMgr *session.Manager) *Handler {
+func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub, profileSvc *profile.Service, sessionMgr *session.Manager) *Handler {
 	allowedOrigins := config.Load().AllowedOrigins
 	return &Handler{
 		logger:         logger.With().Str("handler", "chat").Logger(),
 		service:        service,
 		hub:            hub,
+		profileService: profileSvc,
 		sessionManager: sessionMgr,
 		upgrader:       websocket.NewUpgrader(allowedOrigins),
 	}
@@ -65,7 +68,16 @@ func (h *Handler) JoinChat(w http.ResponseWriter, r *http.Request) {
 
 	clientLogger := h.logger.With().Str("userID", userID.String()).Logger()
 
-	client := websocket.NewClient(h.hub, conn, sessionID, userID, clientLogger)
+	userProfile, err := h.profileService.GetProfile(r.Context(), userID)
+	if err != nil {
+		h.logger.Warn().Msg("Could not retrive profile during websocket handshake. Has the user generated a profile or logged in?")
+		conn.WriteMessage(gorilla.CloseMessage, gorilla.FormatCloseMessage(
+			gorilla.CloseProtocolError, "Profile not found"))
+		conn.Close()
+		return
+	}
+
+	client := websocket.NewClient(clientLogger, h.hub, conn, sessionID, userID, userProfile)
 	h.hub.Register <- client
 	go client.ReadPump(h.service)
 	go client.WritePump()
