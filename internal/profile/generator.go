@@ -28,7 +28,7 @@ func GenerateRandomAvatarURL() string {
 	// Avataaars options (excluding mouth "vomit")
 	topTypes := []string{"noHair", "eyepatch", "hat", "hijab", "turban", "winterHat1", "winterHat2", "winterHat3", "winterHat4", "longHairBigHair", "longHairBob", "longHairBun", "longHairCurly", "longHairCurvy", "LongHairDreads", "longHairFrida", "longHairFro", "longHairFroBand", "longHairNotTooLong", "longHairShavedSides", "longHairMiaWallace", "longHairStraight", "longHairStraight2", "longHairStraightStrand", "shortHairDreads01", "shortHairDreads02", "shortHairFrizzle", "shortHairShaggyMullet", "shortHairShortCurly", "shortHairShortFlat", "shortHairShortRound", "shortHairShortWaved", "shortHairSides", "shortHairTheCaesar", "shortHairTheCaesarSidePart"}
 
-	eyeTypes := []string{"close", "cry", "default", "dizzy", "eyeRoll", "happy", "hearts", "side", "squint", "surprised", "wink", "winkWacky"}
+	eyeTypes := []string{"closed", "cry", "default", "xDizzy", "eyeRoll", "happy", "hearts", "side", "squint", "surprised", "wink", "winkWacky"}
 
 	eyebrowTypes := []string{"angry", "angryNatural", "default", "defaultNatural", "flatNatural", "raisedExcited", "raisedExcitedNatural", "sadConcerned", "sadConcernedNatural", "unibrowNatural", "upDown", "upDownNatural"}
 
