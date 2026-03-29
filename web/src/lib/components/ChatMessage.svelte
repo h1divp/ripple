@@ -3,7 +3,7 @@
   import type { ChatMessage } from '$lib/types/types';
 
   let { message, isMe, showDetails }: {
-    message: ChatMessage;
+    message: ChatMessageRecieved;
     isMe: boolean;
     showDetails: boolean;
   } = $props();
@@ -14,6 +14,7 @@
     date.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
   );
   const isSending = $derived(message.status === 'sending');
+  console.log("MESSAGE", showDetails);
 </script>
 
 <div class="chat">

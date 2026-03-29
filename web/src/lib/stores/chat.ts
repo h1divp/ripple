@@ -1,9 +1,9 @@
 import { writable, get } from 'svelte/store';
-import type { LocationUpdate, ChatMessage, ChatMessageSend, ChatMessageRecieved } from '$lib/types/types';
+import type { LocationUpdate, DisplayMessage, ChatMessageSend, ChatMessageRecieved } from '$lib/types/types';
 import { PUBLIC_API_WS_URL, PUBLIC_API_URL } from '$env/static/public';
 import { joinMessage } from '$lib/utils/joinMessage';
 
-export const messages = writable<ChatMessage[]>([]);
+export const messages = writable<DisplayMessage[]>([]);
 export const isConnected = writable(false);
 export const userCoords = writable({ lat: 0, lon: 0 });
 
@@ -91,17 +91,27 @@ export function connect() {
     console.log("recieved message", event);
     if (data.type !== 'chat') return;
 
+    const receivedMessage: ChatMessageRecieved = {
+      type: 'chat',
+      id: data.id,
+      text: data.text,
+      displayName: data.displayName || data.display_name, // Handle both camelCase and snake_case
+      avatarUrl: data.avatarUrl || data.avatar_url,       // Handle both camelCase and snake_case
+      timestamp: data.timestamp,
+      status: 'sent'
+    };
+
     messages.update((prev) => {
       // Make message change color when user recieves their own message back from the server
-      const existingIndex = prev.findIndex((m) => m.id === data.id);
+      const existingIndex = prev.findIndex((m) => m.id === receivedMessage.id);
       if (existingIndex !== -1) {
         const updated = [...prev];
-        updated[existingIndex] = { ...data, status: 'sent' };
+        updated[existingIndex] = receivedMessage;
         return updated;
       }
 
       // Add new message from another user
-      return [...prev, { ...data, status: 'sent' }];
+      return [...prev, receivedMessage];
     });
   };
 }
