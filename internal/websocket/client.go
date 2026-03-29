@@ -22,7 +22,7 @@ type Client struct {
 	// TODO: convert id types from string to uuid
 	Hub       *Hub
 	Conn      *websocket.Conn
-	Send      chan types.Message
+	Send      chan any // Can be used for multiple message types
 	sessionID uuid.UUID
 	userID    uuid.UUID
 	profile   *profile.Profile
@@ -35,7 +35,7 @@ func NewClient(logger zerolog.Logger, hub *Hub, conn *websocket.Conn, sessionID 
 		logger:    logger,
 		Hub:       hub,
 		Conn:      conn,
-		Send:      make(chan types.Message),
+		Send:      make(chan any),
 		sessionID: sessionID,
 		userID:    userID,
 		profile:   profile,
@@ -116,7 +116,7 @@ func (c *Client) WritePump() {
 	for {
 		select {
 		case message, ok := <-c.Send:
-			c.logger.Debug().Msg("Writepump recieved message")
+			// c.logger.Debug().Msg("Writepump recieved message")
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// Hub closed the channel.
@@ -129,7 +129,7 @@ func (c *Client) WritePump() {
 			}
 
 		case <-ticker.C:
-			c.logger.Debug().Msg("Writepump recieved ticker")
+			// c.logger.Debug().Msg("Writepump recieved ticker")
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return

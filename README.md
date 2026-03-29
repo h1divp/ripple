@@ -24,11 +24,11 @@ This repository is currently not open for contribution, but contributors may be 
   - ip should still be stored in db for moderation purposes (temp ban)
   - users who want to want to chat showing reputation, keep dms etc, etc can sign up
 - trust
-  - each session should have a trust score
+  - each session should have a trust score?
   - if it goes negative past a certain threshhold, various things can happen
     - a user cannot type for an allotted period of time
     - user will have their session kicked
-  - !! look up best practices for this
+  - !! look up best practices for this, should not be able to be gamed by bots
 
 Nice to haves
 - reactions
@@ -68,6 +68,7 @@ Nice to haves
   - this allows for a higher chance of interaction (making the app more enjoyable) while still keeping some locality. i.e. people in the same city can talk to eachother if theres no-one in the same building in chat
 - try out terraform
 - jp/eng localization, check user agent for default language
+- emoji picker with :aliases:
 
 Dev slice-of-life
 - versioned deployments

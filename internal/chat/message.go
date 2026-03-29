@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
@@ -19,6 +20,7 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 	lat, lon, err := s.repo.GetLocationFromUserID(ctx, userID)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not get location from userID")
+		return err
 	}
 
 	s.logger.Debug().Str("content", m.Text).Msg("Recieved chat message")
@@ -27,6 +29,7 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not find nearby users")
+		return err
 	}
 
 	s.logger.Debug().Int("count", len(nearbyIDs)).Msg("Delivering message")
@@ -48,9 +51,19 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 
 func (s *Service) HandleLocationUpdate(ctx context.Context, m *types.LocationUpdate, userID uuid.UUID) error {
 	// TODO: how should we get the userID?
-	err := s.repo.UpdateUserLocation(ctx, userID, m.Latitude, m.Longitude)
+	hasPreviousLocation, err := s.repo.HasUserLocation(ctx, userID)
+	if err != nil {
+		s.logger.Err(err).Msg("Could not determine if a user has a location stored in Redis")
+	}
+
+	err = s.repo.UpdateUserLocation(ctx, userID, m.Latitude, m.Longitude)
 	if err != nil {
 		s.logger.Err(err).Msg("Failed to update user location")
+	}
+
+	if !hasPreviousLocation {
+		// This is the first location ping
+		s.BroadcastJoinNearbyUpdates(ctx, userID)
 	}
 	return nil
 }
@@ -62,5 +75,62 @@ func (s *Service) HandleUsernameUpdate(ctx context.Context, m *types.UsernameUpd
 
 func (s *Service) HandleIconUpdate(ctx context.Context, m *types.IconUpdate) error {
 	// TODO: Send to nearby users
+	return nil
+}
+
+func (s *Service) BroadcastNearbyUpdate(ctx context.Context, userID uuid.UUID, delta int) error {
+	lat, lon, err := s.repo.GetLocationFromUserID(ctx, userID)
+	if err != nil {
+		s.logger.Err(err).Msg("Could not get location for nearby update")
+		return err
+	}
+
+	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)
+	if err != nil {
+		s.logger.Err(err).Msg("Could not find nearby users for update")
+		return err
+	}
+	// Remove joining user from broadcast. We send a seperate message to them specifically.
+	nearbyIDs = slices.DeleteFunc(nearbyIDs, func(id uuid.UUID) bool {
+		return id == userID
+	})
+
+	nearbyBroadcastMsg := &types.NearbyUpdate{
+		Type:  types.MessageTypeNearbyUpdate,
+		Delta: delta,
+	}
+	s.hub.DeliverToLocalClients(nearbyIDs, nearbyBroadcastMsg)
+
+	return nil
+}
+
+func (s *Service) BroadcastJoinNearbyUpdates(ctx context.Context, userID uuid.UUID) error {
+	lat, lon, err := s.repo.GetLocationFromUserID(ctx, userID)
+	if err != nil {
+		s.logger.Err(err).Msg("Could not get location for nearby update")
+		return err
+	}
+
+	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)
+	if err != nil {
+		s.logger.Err(err).Msg("Could not find nearby users for update")
+		return err
+	}
+	// Remove joining user from broadcast. We send a seperate message to them specifically.
+	nearbyIDs = slices.DeleteFunc(nearbyIDs, func(id uuid.UUID) bool {
+		return id == userID
+	})
+
+	nearbyBroadcastMsg := &types.NearbyUpdate{
+		Type:  types.MessageTypeNearbyUpdate,
+		Delta: 1,
+	}
+	s.hub.DeliverToLocalClients(nearbyIDs, nearbyBroadcastMsg)
+
+	nearbyToJoiningUserMsg := &types.NearbyUpdate{
+		Type:  types.MessageTypeNearbyUpdate,
+		Delta: len(nearbyIDs),
+	}
+	s.hub.DeliverToLocalClients([]uuid.UUID{userID}, nearbyToJoiningUserMsg)
 	return nil
 }

@@ -38,9 +38,9 @@ func NewManager(logger zerolog.Logger, rdb *redis.Client, hashKey, blockKey []by
 }
 
 func (m *Manager) CreateSession(ctx context.Context) (string, uuid.UUID, error) {
-	val, ok := ctx.Value(userCtxKey).(uuid.UUID)
+	_, ok := ctx.Value(userCtxKey).(uuid.UUID)
 	if ok {
-		m.logger.Debug().Str("userID", val.String()).Msg("Session already exists")
+		// m.logger.Debug().Str("userID", val.String()).Msg("Session already exists")
 		return "", uuid.Nil, ErrSessionAlreadyExists
 	}
 
