@@ -27,19 +27,23 @@ export interface ChatMessageRecieved extends BaseMessage {
   avatarUrl: string;
   status: MessageStatus;
 }
-export type ChatMessage = ChatMessageSend | ChatMessageRecieved;
-export type DisplayMessage = ChatMessageRecieved | SystemMessage;
-
 export interface SystemMessage extends BaseMessage {
   type: 'system';
   id: string;
   text: string;
 }
+export type ChatMessage = ChatMessageSend | ChatMessageRecieved;
+export type DisplayMessage = ChatMessageRecieved | SystemMessage;
 
 export interface LocationUpdate extends BaseMessage {
   type: 'location_update';
   lat: number;
   lon: number;
+}
+
+export interface NearbyUpdate extends BaseMessage {
+  type: 'nearby_update';
+  delta: number;
 }
 
 export interface UsernameUpdate extends BaseMessage {
