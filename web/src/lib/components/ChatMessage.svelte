@@ -14,7 +14,6 @@
     date.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
   );
   const isSending = $derived(message.status === 'sending');
-  console.log("MESSAGE", showDetails);
 </script>
 
 <div class="chat">

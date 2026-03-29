@@ -31,7 +31,6 @@
     (msg.type === 'chat' && displayMessages[i-1].displayName !== msg.displayName) ||
     displayMessages[i - 1].type === 'system'
   }
-{console.log('Index:', i, 'Message:', msg, 'Type:', msg.type, 'isFirstInGroup:', isFirstInGroup)}
   {#if msg.type === 'system'}
     <SystemMessage message={msg.text} />
   {:else if msg.type === 'chat'}

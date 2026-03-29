@@ -88,7 +88,6 @@ export function connect() {
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    console.log("recieved message", event);
     if (data.type !== 'chat') return;
 
     const receivedMessage: ChatMessageRecieved = {
