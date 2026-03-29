@@ -63,10 +63,10 @@ func (s *Service) HandleDisconnect(ctx context.Context, sessionID uuid.UUID, use
 		s.logger.Err(err).Msg("Could not delete location from redis while disconnecting user")
 	}
 
-	err = s.sessionManager.DeleteSession(ctx, sessionID)
-	if err != nil {
-		s.logger.Err(err).Msg("Could not delete session from redis while disconnecting user")
-	}
+	// err = s.sessionManager.DeleteSession(ctx, sessionID)
+	// if err != nil {
+	// s.logger.Err(err).Msg("Could not delete session from redis while disconnecting user")
+	// }
 
 	s.logger.Info().Msg("Client disconnected from chat.")
 }
