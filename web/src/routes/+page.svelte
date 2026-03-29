@@ -5,7 +5,7 @@
     isConnected,
     connect,
     getSession,
-    sendMessage,
+    getProfile,    sendMessage,
     userDisplayName,
     sendLocationPing,
     userCoords,
@@ -20,6 +20,7 @@
   // TODO: decompose.
   onMount(async () => {
     await getSession();
+    await getProfile();
     connect();
 
     const watchId = navigator.geolocation.watchPosition(
@@ -61,6 +62,6 @@
   class="mx-auto flex h-screen max-w-2xl flex-col bg-sky-100 p-4 lg:border-r-4 lg:border-l-4 lg:border-solid lg:border-sky-800"
 >
   <ChatHeader {$isConnected} {nearbyCounter} {locationError} />
-  <MessageList messages={$messages}/>
+  <MessageList messages={$messages} />
   <ChatInput onSend={sendMessage} {isConnected} />
 </div>
