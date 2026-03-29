@@ -1,8 +1,10 @@
+import { get } from 'svelte/store';
 import { getSession, getProfile } from '$lib/services/api';
 import { connect } from '$lib/services/websocket';
 import { createGeolocationManager } from './geolocation';
 import { sendLocationPing } from '$lib/services/websocket';
 import { locationError, isInitialized, initError } from '$lib/stores/app';
+import { userCoords, isConnected } from '$lib/stores';
 
 export async function initializeApp() {
   try {
@@ -19,6 +21,8 @@ export async function initializeApp() {
 }
 
 export function initializeGeolocation() {
+  let pingInterval: ReturnType<typeof setInterval> | null = null;
+
   const handleLocationUpdate = (lat: number, lon: number) => {
     locationError.set(false);
     sendLocationPing(lat, lon);
@@ -38,5 +42,25 @@ export function initializeGeolocation() {
     handleLocationError
   );
 
-  return geolocationManager;
+  const start = () => {
+    geolocationManager.start();
+
+    pingInterval = setInterval(() => {
+      const coords = get(userCoords);
+      if (coords.lat !== 0 && get(isConnected)) {
+        sendLocationPing(coords.lat, coords.lon);
+      }
+    }, 60000);
+  };
+
+  const stop = () => {
+    geolocationManager.stop();
+
+    if (pingInterval !== null) {
+      clearInterval(pingInterval);
+      pingInterval = null;
+    }
+  };
+
+  return { start, stop };
 }

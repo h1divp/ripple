@@ -1,6 +1,4 @@
-import { get } from 'svelte/store';
-import { userCoords, isConnected } from '$lib/stores';
-import { sendLocationPing } from '$lib/services/websocket';
+import { userCoords } from '$lib/stores';
 
 export interface GeolocationManager {
   start: () => void;
@@ -11,11 +9,11 @@ export function createGeolocationManager(
   onLocationUpdate: (lat: number, lon: number) => void,
   onError: (error: GeolocationPositionError) => void
 ): GeolocationManager {
-  let watchId: number | null = null;
-  let pingInterval: number | null = null;
+  let intervalId: ReturnType<typeof setInterval> | null = null;
+  const LOCATION_CHECK_INTERVAL = 30000; // 30 seconds
 
-  const start = () => {
-    watchId = navigator.geolocation.watchPosition(
+  const getCurrentLocation = () => {
+    navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
@@ -26,26 +24,21 @@ export function createGeolocationManager(
       {
         enableHighAccuracy: false,
         timeout: 15000,
-        maximumAge: 60000,
+        maximumAge: 30000,
       }
     );
+  };
 
-    pingInterval = setInterval(() => {
-      const coords = get(userCoords);
-      if (coords.lat !== 0 && get(isConnected)) {
-        sendLocationPing(coords.lat, coords.lon);
-      }
-    }, 60000);
+  const start = () => {
+    getCurrentLocation();
+    intervalId = setInterval(getCurrentLocation, LOCATION_CHECK_INTERVAL);
   };
 
   const stop = () => {
-    if (watchId !== null) {
-      navigator.geolocation.clearWatch(watchId);
-      watchId = null;
-    }
-    if (pingInterval !== null) {
-      clearInterval(pingInterval);
-      pingInterval = null;
+    console.log('Stopping geolocation checks');
+    if (intervalId !== null) {
+      clearInterval(intervalId);
+      intervalId = null;
     }
   };
 
