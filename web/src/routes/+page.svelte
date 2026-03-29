@@ -61,7 +61,7 @@
 <div
   class="mx-auto flex h-screen max-w-2xl flex-col bg-sky-100 p-4 lg:border-r-4 lg:border-l-4 lg:border-solid lg:border-sky-800"
 >
-  <ChatHeader {nearbyCounter} {locationError} />
+  <ChatHeader {locationError} />
   <MessageList messages={$messages} />
   <ChatInput onSend={sendMessage} {isConnected} />
 </div>
