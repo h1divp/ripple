@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
+	"github.com/h1divp/echo-chat-v2/internal/profile"
 )
 
 var ErrCouldNotGetUserID = errors.New("Could not get userID from context.")
@@ -14,8 +15,7 @@ var ErrCouldNotGetUserID = errors.New("Could not get userID from context.")
 Handlers for message types in types/message.go
 */
 
-func (s *Service) HandleChatMessage(m *types.ChatMessage, userID uuid.UUID, ctx context.Context) error {
-
+func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInbound, userID uuid.UUID, profile *profile.Profile) error {
 	lat, lon, err := s.repo.GetLocationFromUserID(ctx, userID)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not get location from userID")
@@ -30,12 +30,23 @@ func (s *Service) HandleChatMessage(m *types.ChatMessage, userID uuid.UUID, ctx 
 	}
 
 	s.logger.Debug().Int("count", len(nearbyIDs)).Msg("Delivering message")
-	s.hub.DeliverToLocalClients(nearbyIDs, m)
+
+	outboundMsg := types.ChatMessageOutbound{
+		ID:          m.ID,
+		Text:        m.Text,
+		Timestamp:   m.Timestamp,
+		Type:        "chat",
+		Status:      "sent",
+		DisplayName: profile.DisplayName,
+		AvatarURL:   profile.AvatarURL,
+	}
+
+	s.hub.DeliverToLocalClients(nearbyIDs, &outboundMsg)
 	// TODO: Put onto redis pub/sub
 	return nil
 }
 
-func (s *Service) HandleLocationUpdate(m *types.LocationUpdate, userID uuid.UUID, ctx context.Context) error {
+func (s *Service) HandleLocationUpdate(ctx context.Context, m *types.LocationUpdate, userID uuid.UUID) error {
 	// TODO: how should we get the userID?
 	err := s.repo.UpdateUserLocation(ctx, userID, m.Latitude, m.Longitude)
 	if err != nil {
@@ -44,12 +55,12 @@ func (s *Service) HandleLocationUpdate(m *types.LocationUpdate, userID uuid.UUID
 	return nil
 }
 
-func (s *Service) HandleUsernameUpdate(m *types.UsernameUpdate, ctx context.Context) error {
+func (s *Service) HandleUsernameUpdate(ctx context.Context, m *types.UsernameUpdate) error {
 	// TODO: Send to nearby users
 	return nil
 }
 
-func (s *Service) HandleIconUpdate(m *types.IconUpdate, ctx context.Context) error {
+func (s *Service) HandleIconUpdate(ctx context.Context, m *types.IconUpdate) error {
 	// TODO: Send to nearby users
 	return nil
 }
