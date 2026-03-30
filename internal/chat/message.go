@@ -22,8 +22,21 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 		s.logger.Err(err).Msg("Could not get location from userID")
 		return err
 	}
-
 	s.logger.Debug().Str("content", m.Text).Msg("Recieved chat message")
+
+	if s.hub.IsClientRateLimited(userID) {
+		s.logger.Warn().Str("userID", userID.String()).Msg("User rate limited")
+
+		// Send rate limit error back to the user
+		errorMsg := &types.SystemMessage{
+			Type: types.MessageTypeSystem,
+			Code: types.SystemMessageTooManyMessages,
+			ID:   uuid.New(),
+			Text: "You're sending messages too quickly. Please slow down.",
+		}
+		s.hub.DeliverToLocalClients([]uuid.UUID{userID}, errorMsg)
+		return nil
+	}
 
 	// TODO: convert from messageSearchRadius to range stored in redis for user.
 	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)

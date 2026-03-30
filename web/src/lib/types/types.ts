@@ -1,11 +1,14 @@
 export type MessageType =
   | 'chat'
   | 'system'
+  | 'join'
   | 'location_update'
+  | 'nearby_update'
   | 'username_update'
   | 'icon_update';
 
 export type MessageStatus = 'sending' | 'sent' | 'error';
+export const SystemMessageErrorCode = 'too_many_messages';
 
 interface BaseMessage {
   type: MessageType;
@@ -29,11 +32,17 @@ export interface ChatMessageRecieved extends BaseMessage {
 }
 export interface SystemMessage extends BaseMessage {
   type: 'system';
+  code: string;
+  id: string;
+  text: string;
+}
+export interface JoinMessage extends BaseMessage {
+  type: 'join';
   id: string;
   text: string;
 }
 export type ChatMessage = ChatMessageSend | ChatMessageRecieved;
-export type DisplayMessage = ChatMessageRecieved | SystemMessage;
+export type DisplayMessage = ChatMessageRecieved | SystemMessage | JoinMessage;
 
 export interface LocationUpdate extends BaseMessage {
   type: 'location_update';

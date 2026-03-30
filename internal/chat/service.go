@@ -21,6 +21,7 @@ type Service struct {
 type HubInterface interface {
 	// Defined in websocket/hub.go
 	DeliverToLocalClients(userIDs []uuid.UUID, msg any)
+	IsClientRateLimited(userID uuid.UUID) bool
 }
 
 type SessionInterface interface {

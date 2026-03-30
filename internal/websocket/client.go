@@ -3,6 +3,8 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"slices"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,13 +21,14 @@ const (
 )
 
 type Client struct {
-	// TODO: convert id types from string to uuid
-	Hub       *Hub
-	Conn      *websocket.Conn
-	Send      chan any // Can be used for multiple message types
-	sessionID uuid.UUID
-	userID    uuid.UUID
-	profile   *profile.Profile
+	Hub               *Hub
+	Conn              *websocket.Conn
+	Send              chan any // Can be used for multiple message types
+	sessionID         uuid.UUID
+	userID            uuid.UUID
+	profile           *profile.Profile
+	messageTimestamps []time.Time
+	rateLimitMutex    sync.RWMutex
 
 	logger zerolog.Logger
 }
@@ -42,8 +45,8 @@ func NewClient(logger zerolog.Logger, hub *Hub, conn *websocket.Conn, sessionID 
 	}
 }
 
-// TODO: explain where this is linked
 type MessageHandler interface {
+	// Defined in chat/service
 	ProcessIncomingMessage(ctx context.Context, msg types.Message, userID uuid.UUID, profile *profile.Profile) error
 }
 
@@ -136,4 +139,23 @@ func (c *Client) WritePump() {
 			}
 		}
 	}
+}
+
+func (c *Client) isRateLimited() bool {
+	// TODO: Add the rate limit window and message number into config
+	c.rateLimitMutex.Lock()
+	defer c.rateLimitMutex.Unlock()
+
+	now := time.Now()
+	cutoff := now.Add(-time.Second * 30)
+
+	c.messageTimestamps = slices.DeleteFunc(c.messageTimestamps,
+		func(t time.Time) bool { return t.Before(cutoff) })
+
+	if len(c.messageTimestamps) >= 30 {
+		return true
+	}
+
+	c.messageTimestamps = append(c.messageTimestamps, now)
+	return false
 }

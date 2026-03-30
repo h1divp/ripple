@@ -74,6 +74,7 @@ func main() {
 	}
 
 	go wsHub.Run()
+
 	api := api.New(&logger, sessionHdl, sessionMgr, chatHdl, profileHdl)
 
 	srv := &http.Server{

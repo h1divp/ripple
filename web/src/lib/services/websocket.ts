@@ -5,7 +5,7 @@ import { userDisplayName, userAvatarUrl } from '$lib/stores/user';
 import { userCoords } from '$lib/stores/location';
 import { joinMessage } from '$lib/utils/joinMessage';
 import type { LocationUpdate, ChatMessageSend, ChatMessageRecieved } from '$lib/types/types';
-import { handleChatMessage, handleNearbyUpdate } from './messageHandlers';
+import { handleChatMessage, handleNearbyUpdate, handleSystemMessage } from './messageHandlers';
 
 let socket: WebSocket;
 
@@ -40,6 +40,9 @@ function handleSocketMessage(event: MessageEvent) {
   switch (data.type) {
     case 'chat':
       handleChatMessage(data);
+      break;
+    case 'system':
+      handleSystemMessage(data);
       break;
     case 'nearby_update':
       handleNearbyUpdate(data);

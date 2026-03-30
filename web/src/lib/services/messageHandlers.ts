@@ -1,5 +1,5 @@
 import { messages, nearbyCount } from '$lib/stores/chat';
-import type { ChatMessageRecieved } from '$lib/types/types';
+import type { ChatMessageRecieved, SystemMessage } from '$lib/types/types';
 
 export function handleChatMessage(data: any) {
   const receivedMessage: ChatMessageRecieved = {
@@ -22,6 +22,20 @@ export function handleChatMessage(data: any) {
     }
     return [...prev, receivedMessage];
   });
+}
+
+export function handleSystemMessage(data: any) {
+  const systemMessage: SystemMessage = {
+    type: 'system',
+    id: data.id || crypto.randomUUID(),
+    code: data.code,
+    text: data.text,
+    timestamp: data.timestamp || Date.now()
+  };
+
+  // TODO: check for status code
+
+  messages.update((prev) => [...prev, systemMessage]);
 }
 
 export function handleNearbyUpdate(data: any) {
