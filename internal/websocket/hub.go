@@ -80,3 +80,15 @@ func (h *Hub) HasClient(userID uuid.UUID) bool {
 	_, ok := h.clients[userID]
 	return ok
 }
+
+func (h *Hub) IsClientRateLimited(userID uuid.UUID) bool {
+	h.mu.RLock()
+	client, exists := h.clients[userID]
+	h.mu.RUnlock()
+
+	if !exists {
+		return false
+	}
+
+	return client.isRateLimited()
+}
