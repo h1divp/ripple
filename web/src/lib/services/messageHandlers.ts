@@ -1,4 +1,4 @@
-import { messages, nearbyCount } from '$lib/stores/chat';
+import { messages, nearbyCount, rateLimitEndTime } from '$lib/stores/chat';
 import type { ChatMessageRecieved, SystemMessage } from '$lib/types/types';
 
 export function handleChatMessage(data: any) {
@@ -25,19 +25,34 @@ export function handleChatMessage(data: any) {
 }
 
 export function handleSystemMessage(data: any) {
-  console.log(data);
   const systemMessage: SystemMessage = {
     type: 'system',
     id: data.id || crypto.randomUUID(),
     code: data.code,
     text: data.text,
     timestamp: data.timestamp || Date.now(),
-    isConsoleMessage: data.is_console_message
+    isConsoleMessage: data.is_console_message,
+    rateLimitEndTime: data.rate_limit_end_time
   };
 
   if (systemMessage.isConsoleMessage) {
     console.log("System:", systemMessage.text)
     return
+  }
+
+  if (systemMessage.rateLimitEndTime) {
+    const endTime = new Date(systemMessage.rateLimitEndTime);
+    rateLimitEndTime.set(endTime);
+    const timeUntilEnd = endTime.getTime() - Date.now();
+
+    // Only set timeout if the end time is in the future
+    if (timeUntilEnd > 0) {
+      setTimeout(() => {
+        rateLimitEndTime.set(new Date(0));
+      }, timeUntilEnd);
+    } else {
+      rateLimitEndTime.set(new Date(0));
+    }
   }
 
   messages.update((prev) => [...prev, systemMessage]);
