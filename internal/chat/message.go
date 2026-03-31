@@ -63,7 +63,6 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 }
 
 func (s *Service) HandleLocationUpdate(ctx context.Context, m *types.LocationUpdate, userID uuid.UUID) error {
-	// TODO: how should we get the userID?
 	hasPreviousLocation, err := s.repo.HasUserLocation(ctx, userID)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not determine if a user has a location stored in Redis")
@@ -74,8 +73,10 @@ func (s *Service) HandleLocationUpdate(ctx context.Context, m *types.LocationUpd
 		s.logger.Err(err).Msg("Failed to update user location")
 	}
 
+	// s.logger.Debug().Float64("lat", m.Latitude).Float64("lon", m.Longitude).Msg("")
+
 	if !hasPreviousLocation {
-		// This is the first location ping
+		// First location ping
 		s.BroadcastJoinNearbyUpdates(ctx, userID)
 	}
 	return nil
