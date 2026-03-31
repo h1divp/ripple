@@ -16,6 +16,7 @@ type Service struct {
 	hub                 HubInterface
 	sessionManager      SessionInterface
 	messageSearchRadius float64
+	config              *config.Config
 }
 
 type HubInterface interface {
@@ -28,7 +29,7 @@ type SessionInterface interface {
 	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
 }
 
-func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessionMgr SessionInterface) *Service {
+func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessionMgr SessionInterface, cfg *config.Config) *Service {
 	log := logger.With().Str("service", "chat").Logger()
 	radius := config.Load().Chat.MessageSearchRadius
 	if radius <= 0 {
@@ -41,6 +42,7 @@ func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessi
 		hub:                 hub,
 		sessionManager:      sessionMgr,
 		messageSearchRadius: radius,
+		config:              cfg,
 	}
 }
 
