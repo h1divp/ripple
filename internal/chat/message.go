@@ -38,6 +38,20 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 		return nil
 	}
 
+	if len(m.Text) > s.config.Chat.MaxMessageLength {
+		s.logger.Warn().Int("length", len(m.Text)).Str("userID", userID.String()).Msg("Recieved message exceeding max message length.")
+
+		errorMsg := &types.SystemMessage{
+			Type:             types.MessageTypeSystem,
+			Code:             types.SystemMessageMessageTooLong,
+			ID:               uuid.New(),
+			Text:             "Message is too long.",
+			IsConsoleMessage: true,
+		}
+		s.hub.DeliverToLocalClients([]uuid.UUID{userID}, errorMsg)
+		return nil
+	}
+
 	// TODO: convert from messageSearchRadius to range stored in redis for user.
 	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)
 	if err != nil {
@@ -63,7 +77,6 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 }
 
 func (s *Service) HandleLocationUpdate(ctx context.Context, m *types.LocationUpdate, userID uuid.UUID) error {
-	// TODO: how should we get the userID?
 	hasPreviousLocation, err := s.repo.HasUserLocation(ctx, userID)
 	if err != nil {
 		s.logger.Err(err).Msg("Could not determine if a user has a location stored in Redis")
@@ -74,8 +87,10 @@ func (s *Service) HandleLocationUpdate(ctx context.Context, m *types.LocationUpd
 		s.logger.Err(err).Msg("Failed to update user location")
 	}
 
+	// s.logger.Debug().Float64("lat", m.Latitude).Float64("lon", m.Longitude).Msg("")
+
 	if !hasPreviousLocation {
-		// This is the first location ping
+		// First location ping
 		s.BroadcastJoinNearbyUpdates(ctx, userID)
 	}
 	return nil

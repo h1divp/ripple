@@ -14,6 +14,7 @@ const (
 
 const (
 	SystemMessageTooManyMessages = "too_many_messages"
+	SystemMessageMessageTooLong  = "message_too_long"
 )
 
 // General message type used for Service.ProcessIncomingMessage
@@ -36,10 +37,11 @@ type ChatMessageOutbound struct {
 }
 
 type SystemMessage struct {
-	Type string    `json:"type,omitempty"`
-	Code string    `json:"code,omitempty"`
-	ID   uuid.UUID `json:"id,omitempty"`
-	Text string    `json:"text,omitempty"`
+	Type             string    `json:"type,omitempty"`
+	Code             string    `json:"code,omitempty"`
+	ID               uuid.UUID `json:"id,omitempty"`
+	Text             string    `json:"text,omitempty"`
+	IsConsoleMessage bool      `json:"is_console_message"`
 }
 
 // Range included for future ability to send chat messages to users

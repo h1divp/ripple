@@ -35,6 +35,7 @@ export interface SystemMessage extends BaseMessage {
   code: string;
   id: string;
   text: string;
+  isConsoleMessage?: boolean;
 }
 export interface JoinMessage extends BaseMessage {
   type: 'join';

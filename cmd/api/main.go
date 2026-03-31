@@ -56,8 +56,8 @@ func main() {
 
 	wsHub := websocket.NewHub(logger)
 	chatRepo := chat.NewRepository(logger, rdb)
-	chatSvc := chat.NewService(logger, chatRepo, wsHub, sessionMgr)
-	chatHdl := chat.NewHandler(logger, chatSvc, wsHub, profileSvc, sessionMgr)
+	chatSvc := chat.NewService(logger, chatRepo, wsHub, sessionMgr, cfg)
+	chatHdl := chat.NewHandler(logger, chatSvc, wsHub, profileSvc, sessionMgr, cfg)
 
 	// Messy but needed...
 	wsHub.OnDisconnect = func(sessionID uuid.UUID, userID uuid.UUID) {
