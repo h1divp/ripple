@@ -1,3 +1,4 @@
+import { PUBLIC_LOCATION_PING_INTERVAL_MILISECONDS } from '$env/static/public'
 import { get } from 'svelte/store';
 import { getSession, getProfile } from '$lib/services/api';
 import { connect } from '$lib/services/websocket';
@@ -5,6 +6,8 @@ import { createGeolocationManager } from './geolocation';
 import { sendLocationPing } from '$lib/services/websocket';
 import { locationError, isInitialized, initError } from '$lib/stores/app';
 import { userCoords, isConnected } from '$lib/stores';
+
+const pingIntervalMs = Number(PUBLIC_LOCATION_PING_INTERVAL_MILISECONDS);
 
 export async function initializeApp() {
   try {
@@ -50,7 +53,7 @@ export function initializeGeolocation() {
       if (coords.lat !== 0 && get(isConnected)) {
         sendLocationPing(coords.lat, coords.lon);
       }
-    }, 60000);
+    }, pingIntervalMs);
   };
 
   const stop = () => {
