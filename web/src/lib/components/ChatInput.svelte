@@ -58,7 +58,7 @@
   ></textarea>
   <div class="flex flex-col justify-between">
   <button
-    class="btn btn-primary cursor-pointer mt-1 text-sky-900 disabled:cursor-not-allowed"
+    class={`btn btn-primary cursor-pointer mt-1 hover:[&>svg]:fill-sky-50 active:text-sky-700 text-sky-900 disabled:text-sky-900/50 disabled:cursor-not-allowed`}
     onclick={handleSend}
     disabled={!canSend || isOverLimit}
   >
