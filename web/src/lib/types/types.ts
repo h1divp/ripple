@@ -36,6 +36,7 @@ export interface SystemMessage extends BaseMessage {
   id: string;
   text: string;
   isConsoleMessage?: boolean;
+  rateLimitEndTime?: Date;
 }
 export interface JoinMessage extends BaseMessage {
   type: 'join';
