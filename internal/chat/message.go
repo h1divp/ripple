@@ -63,6 +63,20 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 		return nil
 	}
 
+	if len(m.Text) > s.config.Chat.MaxMessageLength {
+		s.logger.Warn().Int("length", len(m.Text)).Str("userID", userID.String()).Msg("Recieved message exceeding max message length.")
+
+		errorMsg := &types.SystemMessage{
+			Type:             types.MessageTypeSystem,
+			Code:             types.SystemMessageMessageTooLong,
+			ID:               uuid.New(),
+			Text:             "Message is too long.",
+			IsConsoleMessage: true,
+		}
+		s.hub.DeliverToLocalClients([]uuid.UUID{userID}, errorMsg)
+		return nil
+	}
+
 	// TODO: convert from messageSearchRadius to range stored in redis for user.
 	nearbyIDs, err := s.repo.FindNearbyUserIDs(ctx, lat, lon, s.messageSearchRadius)
 	if err != nil {

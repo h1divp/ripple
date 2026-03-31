@@ -25,6 +25,7 @@ export function handleChatMessage(data: any) {
 }
 
 export function handleSystemMessage(data: any) {
+  console.log(data);
   const systemMessage: SystemMessage = {
     type: 'system',
     id: data.id || crypto.randomUUID(),
