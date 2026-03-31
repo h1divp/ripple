@@ -22,9 +22,11 @@ const (
 )
 
 type Client struct {
-	Hub               *Hub
-	Conn              *websocket.Conn
-	Send              chan any // Can be used for multiple message types
+	Hub                    *Hub
+	Conn                   *websocket.Conn
+	Send                   chan any // Can be used for multiple message types
+	OldestMessageTimestamp time.Time
+
 	sessionID         uuid.UUID
 	userID            uuid.UUID
 	profile           *profile.Profile
@@ -144,21 +146,25 @@ func (c *Client) WritePump() {
 	}
 }
 
-func (c *Client) isRateLimited() bool {
+func (c *Client) isRateLimited() (bool, time.Time, error) {
 	c.rateLimitMutex.Lock()
 	defer c.rateLimitMutex.Unlock()
 
 	now := time.Now()
 	cutoff := now.Add(-c.config.Chat.RateLimitWindowSeconds)
 
+	// Remove old timestamps
 	c.messageTimestamps = slices.DeleteFunc(c.messageTimestamps,
 		func(t time.Time) bool { return t.Before(cutoff) })
 
-	c.logger.Debug().Int("timestamps", len(c.messageTimestamps)).Msg("timestamps")
 	if len(c.messageTimestamps) >= c.config.Chat.RateLimitMaxMessages {
-		return true
+		// The oldest message that's still counting against the limit
+		// When this message expires, the user will no longer be rate limited
+		oldestRelevantMessage := c.messageTimestamps[0]
+		endTime := oldestRelevantMessage.Add(c.config.Chat.RateLimitWindowSeconds)
+		return true, endTime, nil
 	}
 
 	c.messageTimestamps = append(c.messageTimestamps, now)
-	return false
+	return false, time.Time{}, nil
 }
