@@ -25,15 +25,20 @@ export function handleChatMessage(data: any) {
 }
 
 export function handleSystemMessage(data: any) {
+  console.log(data);
   const systemMessage: SystemMessage = {
     type: 'system',
     id: data.id || crypto.randomUUID(),
     code: data.code,
     text: data.text,
-    timestamp: data.timestamp || Date.now()
+    timestamp: data.timestamp || Date.now(),
+    isConsoleMessage: data.is_console_message
   };
 
-  // TODO: check for status code
+  if (systemMessage.isConsoleMessage) {
+    console.log("System:", systemMessage.text)
+    return
+  }
 
   messages.update((prev) => [...prev, systemMessage]);
 }
