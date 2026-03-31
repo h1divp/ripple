@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
@@ -24,15 +25,25 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 	}
 	s.logger.Debug().Str("content", m.Text).Msg("Recieved chat message")
 
-	if s.hub.IsClientRateLimited(userID) {
+	isRateLimited, rateLimitEnd, err := s.hub.IsClientRateLimited(userID)
+	if err != nil {
+		s.logger.Err(err).Msg("Error while checking if user is rate limited")
+		isRateLimited = false
+	}
+	if isRateLimited {
 		s.logger.Warn().Str("userID", userID.String()).Msg("User rate limited")
+
+		if (rateLimitEnd.Equal(time.Time{})) {
+			s.logger.Warn().Msg("end time returned for user rate limit is a 0 value")
+		}
 
 		// Send rate limit error back to the user
 		errorMsg := &types.SystemMessage{
-			Type: types.MessageTypeSystem,
-			Code: types.SystemMessageTooManyMessages,
-			ID:   uuid.New(),
-			Text: "You're sending messages too quickly. Please slow down.",
+			ID:               uuid.New(),
+			Type:             types.MessageTypeSystem,
+			Code:             types.SystemMessageTooManyMessages,
+			Text:             "You're sending messages too quickly. Please slow down.",
+			RateLimitEndTime: rateLimitEnd,
 		}
 		s.hub.DeliverToLocalClients([]uuid.UUID{userID}, errorMsg)
 		return nil
@@ -42,9 +53,9 @@ func (s *Service) HandleChatMessage(ctx context.Context, m *types.ChatMessageInb
 		s.logger.Warn().Int("length", len(m.Text)).Str("userID", userID.String()).Msg("Recieved message exceeding max message length.")
 
 		errorMsg := &types.SystemMessage{
+			ID:               uuid.New(),
 			Type:             types.MessageTypeSystem,
 			Code:             types.SystemMessageMessageTooLong,
-			ID:               uuid.New(),
 			Text:             "Message is too long.",
 			IsConsoleMessage: true,
 		}
