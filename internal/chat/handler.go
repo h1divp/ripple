@@ -23,9 +23,10 @@ type Handler struct {
 	profileService *profile.Service
 	sessionManager *session.Manager
 	upgrader       gorilla.Upgrader
+	config         *config.Config
 }
 
-func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub, profileSvc *profile.Service, sessionMgr *session.Manager) *Handler {
+func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub, profileSvc *profile.Service, sessionMgr *session.Manager, cfg *config.Config) *Handler {
 	allowedOrigins := config.Load().AllowedOrigins
 	return &Handler{
 		logger:         logger.With().Str("handler", "chat").Logger(),
@@ -34,6 +35,7 @@ func NewHandler(logger zerolog.Logger, service *Service, hub *websocket.Hub, pro
 		profileService: profileSvc,
 		sessionManager: sessionMgr,
 		upgrader:       websocket.NewUpgrader(allowedOrigins),
+		config:         cfg,
 	}
 }
 
@@ -76,7 +78,7 @@ func (h *Handler) JoinChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := websocket.NewClient(clientLogger, h.hub, conn, sessionID, userID, userProfile)
+	client := websocket.NewClient(clientLogger, h.hub, conn, sessionID, userID, userProfile, h.config)
 	h.hub.Register <- client
 	go client.ReadPump(h.service)
 	go client.WritePump()

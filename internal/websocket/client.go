@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
+	"github.com/h1divp/echo-chat-v2/internal/config"
 	"github.com/h1divp/echo-chat-v2/internal/profile"
 	"github.com/rs/zerolog"
 )
@@ -27,13 +28,14 @@ type Client struct {
 	sessionID         uuid.UUID
 	userID            uuid.UUID
 	profile           *profile.Profile
+	config            *config.Config
 	messageTimestamps []time.Time
 	rateLimitMutex    sync.RWMutex
 
 	logger zerolog.Logger
 }
 
-func NewClient(logger zerolog.Logger, hub *Hub, conn *websocket.Conn, sessionID uuid.UUID, userID uuid.UUID, profile *profile.Profile) *Client {
+func NewClient(logger zerolog.Logger, hub *Hub, conn *websocket.Conn, sessionID uuid.UUID, userID uuid.UUID, profile *profile.Profile, cfg *config.Config) *Client {
 	return &Client{
 		logger:    logger,
 		Hub:       hub,
@@ -42,6 +44,7 @@ func NewClient(logger zerolog.Logger, hub *Hub, conn *websocket.Conn, sessionID 
 		sessionID: sessionID,
 		userID:    userID,
 		profile:   profile,
+		config:    cfg,
 	}
 }
 
@@ -142,17 +145,17 @@ func (c *Client) WritePump() {
 }
 
 func (c *Client) isRateLimited() bool {
-	// TODO: Add the rate limit window and message number into config
 	c.rateLimitMutex.Lock()
 	defer c.rateLimitMutex.Unlock()
 
 	now := time.Now()
-	cutoff := now.Add(-time.Second * 30)
+	cutoff := now.Add(-c.config.Chat.RateLimitWindowSeconds)
 
 	c.messageTimestamps = slices.DeleteFunc(c.messageTimestamps,
 		func(t time.Time) bool { return t.Before(cutoff) })
 
-	if len(c.messageTimestamps) >= 30 {
+	c.logger.Debug().Int("timestamps", len(c.messageTimestamps)).Msg("timestamps")
+	if len(c.messageTimestamps) >= c.config.Chat.RateLimitMaxMessages {
 		return true
 	}
 

@@ -30,7 +30,7 @@ type SessionInterface interface {
 
 func NewService(logger zerolog.Logger, repo *Repository, hub HubInterface, sessionMgr SessionInterface) *Service {
 	log := logger.With().Str("service", "chat").Logger()
-	radius := config.Load().MessageSearchRadius
+	radius := config.Load().Chat.MessageSearchRadius
 	if radius <= 0 {
 		log.Warn().Msg("Fallback is being used for message search radius (50 meters).")
 		radius = 50.0
