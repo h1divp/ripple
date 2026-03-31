@@ -1,6 +1,10 @@
 package types
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 const (
 	MessageTypeChatInbound    = "chat"
@@ -37,11 +41,12 @@ type ChatMessageOutbound struct {
 }
 
 type SystemMessage struct {
+	ID               uuid.UUID `json:"id,omitempty"`
 	Type             string    `json:"type,omitempty"`
 	Code             string    `json:"code,omitempty"`
-	ID               uuid.UUID `json:"id,omitempty"`
 	Text             string    `json:"text,omitempty"`
 	IsConsoleMessage bool      `json:"is_console_message"`
+	RateLimitEndTime time.Time `json:"rate_limit_end_time"`
 }
 
 // Range included for future ability to send chat messages to users

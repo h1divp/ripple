@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/h1divp/echo-chat-v2/internal/chat/types"
@@ -22,7 +23,7 @@ type Service struct {
 type HubInterface interface {
 	// Defined in websocket/hub.go
 	DeliverToLocalClients(userIDs []uuid.UUID, msg any)
-	IsClientRateLimited(userID uuid.UUID) bool
+	IsClientRateLimited(userID uuid.UUID) (bool, time.Time, error)
 }
 
 type SessionInterface interface {

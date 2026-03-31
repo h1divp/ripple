@@ -1,11 +1,15 @@
 package websocket
 
 import (
+	"errors"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
+
+var ErrClientNotFound = errors.New("Client could not be found.")
 
 type Hub struct {
 	clients      map[uuid.UUID]*Client
@@ -81,13 +85,13 @@ func (h *Hub) HasClient(userID uuid.UUID) bool {
 	return ok
 }
 
-func (h *Hub) IsClientRateLimited(userID uuid.UUID) bool {
+func (h *Hub) IsClientRateLimited(userID uuid.UUID) (bool, time.Time, error) {
 	h.mu.RLock()
 	client, exists := h.clients[userID]
 	h.mu.RUnlock()
 
 	if !exists {
-		return false
+		return false, time.Time{}, ErrClientNotFound
 	}
 
 	return client.isRateLimited()
