@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { get } from 'svelte/store';
   import ChatMessage from './ChatMessage.svelte';
   import SystemMessage from './SystemMessage.svelte';
   import JoinMessage from './JoinMessage.svelte';
@@ -34,7 +35,7 @@
       i === 0 ||
       displayMessages[i - 1].type === 'join' ||
       (displayMessages[i - 1].type === 'system' &&
-       userDisplayName !== msg.displayName) ||
+       get(userDisplayName) !== msg.displayName) ||
       (msg.type === 'chat' && 
        displayMessages[i - 1].type === 'chat' && 
        displayMessages[i - 1].displayName !== msg.displayName)
