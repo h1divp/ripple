@@ -1,0 +1,36 @@
+name: Promote API from Staging to Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy compose file to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.API_SERVER_HOST }}
+          username: ${{ secrets.API_SERVER_USER }}
+          key: ${{ secrets.API_SERVER_SSH_KEY }}
+          source: "deploy/docker-compose.api.yml"
+          target: "/srv/api"
+          strip_components: 2
+
+      - name: Promote staging to production
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.API_SERVER_HOST }}
+          username: ${{ secrets.API_SERVER_USER }}
+          key: ${{ secrets.API_SERVER_SSH_KEY }}
+          script: |
+            cd /srv/api
+            cp .staging-tag .production-tag
+            export IMAGE_TAG_STAGING=$(cat .staging-tag)
+            export IMAGE_TAG_PROD=$(cat .production-tag)
+            docker compose -f docker-compose.api.yml pull api-production
+            docker compose -f docker-compose.api.yml up -d --no-deps --force-recreate api-production
