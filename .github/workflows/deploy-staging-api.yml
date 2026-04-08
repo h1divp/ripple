@@ -15,13 +15,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Copy compose file to server
+      - name: Pull secrets
+        run: |
+          export INFISICAL_TOKEN=$(infisical login \
+            --method=universal-auth \
+            --client-id='${{ secrets.INFISICAL_CLIENT_ID }}' \
+            --client-secret='${{ secrets.INFISICAL_CLIENT_SECRET }}' \
+            --silent \
+            --plain)
+          infisical export \
+            --token=$INFISICAL_TOKEN \
+            --env=staging \
+            --format=dotenv \
+            --path="/api" \
+            --projectId='${{ secrets.INFISICAL_PROJECT_ID }}' \
+            > .env.api.staging
+
+      - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.API_SERVER_HOST }}
           username: ${{ secrets.API_SERVER_USER }}
           key: ${{ secrets.API_SERVER_SSH_KEY }}
-          source: "deploy/docker-compose.api.yml"
+          source: "deploy/docker-compose.api.yml,.env.api.staging"
           target: "/srv/api"
           strip_components: 2
 

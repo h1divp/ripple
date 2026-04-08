@@ -11,6 +11,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Pull secrets
+        run: |
+          export INFISICAL_TOKEN=$(infisical login \
+            --method=universal-auth \
+            --client-id='${{ secrets.INFISICAL_CLIENT_ID }}' \
+            --client-secret='${{ secrets.INFISICAL_CLIENT_SECRET }}' \
+            --silent \
+            --plain)
+          infisical export \
+            --token=$INFISICAL_TOKEN \
+            --env=production \
+            --format=dotenv \
+            --path="/api" \
+            --projectId='${{ secrets.INFISICAL_PROJECT_ID }}' \
+            > .env.api.production
+
       - name: Copy compose file to server
         uses: appleboy/scp-action@v0.1.7
         with:
