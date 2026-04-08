@@ -1,4 +1,4 @@
-import { PUBLIC_LOCATION_PING_INTERVAL_MILISECONDS } from '$env/static/public'
+import { PUBLIC_LOCATION_PING_INTERVAL_MILLISECONDS } from '$env/static/public'
 import { get } from 'svelte/store';
 import { getSession, getProfile } from '$lib/services/api';
 import { connect } from '$lib/services/websocket';
@@ -7,7 +7,7 @@ import { sendLocationPing } from '$lib/services/websocket';
 import { locationError, isInitialized, initError } from '$lib/stores/app';
 import { userCoords, isConnected } from '$lib/stores';
 
-const pingIntervalMs = Number(PUBLIC_LOCATION_PING_INTERVAL_MILISECONDS);
+const pingIntervalMs = Number(PUBLIC_LOCATION_PING_INTERVAL_MILLISECONDS);
 
 export async function initializeApp() {
   try {

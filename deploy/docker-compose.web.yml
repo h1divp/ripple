@@ -1,0 +1,44 @@
+services:
+  # caddy:
+  #   image: ghcr.io/caddybuilds/caddy-cloudflare:latest
+  #   container_name: caddy
+  #   env_file:
+  #     - ./secrets/.env.cf
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./Caddyfile.web:/etc/caddy/Caddyfile
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+  #   networks:
+  #     - web-network
+
+  # IMAGE_TAG_STAGING and IMAGE_TAG_PROD are injected as environment variables during deployment/promotion
+  web-staging:
+    image: ghcr.io/h1divp/ripple-web:${IMAGE_TAG_STAGING}
+    ports:
+      - "5174:3000"
+    restart: always
+    env_file:
+      - ./.env.web.staging
+    networks:
+      - web-network
+
+  web-production:
+    image: ghcr.io/h1divp/ripple-web:${IMAGE_TAG_PROD}
+    ports:
+      - "5173:3000"
+    restart: always
+    env_file:
+      - ./.env.web.production
+    networks:
+      - web-network
+
+# volumes:
+#   caddy_data:
+#   caddy_config:
+
+networks:
+  web-network:
+    driver: bridge
