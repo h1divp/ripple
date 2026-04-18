@@ -26,6 +26,11 @@ jobs:
           curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo bash
           sudo apt-get install -y infisical       uses: actions/checkout@v4
 
+      - name: Install Infisical CLI
+        run: |
+          curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo bash
+          sudo apt-get install -y infisical       
+
       - name: Pull secrets
         run: |
           export INFISICAL_TOKEN=$(infisical login \
