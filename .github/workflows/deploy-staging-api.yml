@@ -6,11 +6,18 @@ on:
       - "Build and Push API Image"
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. api-v0.1.1)'
+        required: true
 
 jobs:
   deploy:
     runs-on: ubuntu-24.04
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >
+        github.event_name == 'workflow_dispatch' ||
+        github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,10 +54,13 @@ jobs:
           host: ${{ secrets.API_SERVER_HOST }}
           username: ${{ secrets.API_SERVER_USER }}
           key: ${{ secrets.API_SERVER_SSH_KEY }}
+          envs: IMAGE_TAG
+          env:
+            IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.ref_name }}
           script: |
             cd /srv/api
-            echo ${{ github.event.workflow_run.head_branch }} > .staging-tag
-            export IMAGE_TAG_STAGING=$(cat .staging-tag)
+            echo $IMAGE_TAG > .staging-tag
+            export IMAGE_TAG_STAGING=$IMAGE_TAG
             export IMAGE_TAG_PROD=$(cat .production-tag 2>/dev/null || echo "none")
             docker compose -f docker-compose.api.yml pull api-staging
             docker compose -f docker-compose.api.yml up -d --no-deps --force-recreate api-staging

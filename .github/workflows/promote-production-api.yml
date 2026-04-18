@@ -33,7 +33,7 @@ jobs:
           host: ${{ secrets.API_SERVER_HOST }}
           username: ${{ secrets.API_SERVER_USER }}
           key: ${{ secrets.API_SERVER_SSH_KEY }}
-          source: "deploy/docker-compose.api.yml"
+          source: "deploy/docker-compose.api.yml,.env.api.production"
           target: "/srv/api"
           strip_components: 2
 
