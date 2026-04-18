@@ -51,7 +51,7 @@ jobs:
           key: ${{ secrets.API_SERVER_SSH_KEY }}
           source: "deploy/docker-compose.api.yml,.env.api.staging"
           target: "/srv/api"
-          strip_components: 2
+          strip_components: 1
 
       - name: Deploy to staging
         uses: appleboy/ssh-action@v1
