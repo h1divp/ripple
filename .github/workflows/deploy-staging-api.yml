@@ -55,13 +55,13 @@ jobs:
 
       - name: Deploy to staging
         uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.ref_name }}
         with:
           host: ${{ secrets.API_SERVER_HOST }}
           username: ${{ secrets.API_SERVER_USER }}
           key: ${{ secrets.API_SERVER_SSH_KEY }}
           envs: IMAGE_TAG
-          env:
-            IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.ref_name }}
           script: |
             cd /srv/api
             echo $IMAGE_TAG > .staging-tag
