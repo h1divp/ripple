@@ -6,51 +6,48 @@ on:
       - "Build and Push Web Image"
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. web-v0.1.0)'
+        required: true
 
 jobs:
   deploy:
     runs-on: ubuntu-24.04
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Pull secrets
-        run: |
-          export INFISICAL_TOKEN=$(infisical login \
-            --method=universal-auth \
-            --client-id='${{ secrets.INFISICAL_CLIENT_ID }}' \
-            --client-secret='${{ secrets.INFISICAL_CLIENT_SECRET }}' \
-            --silent \
-            --plain)
-          infisical export \
-            --token=$INFISICAL_TOKEN \
-            --env=staging \
-            --format=dotenv \
-            --path="/web" \
-            --projectId='${{ secrets.INFISICAL_PROJECT_ID }}' \
-            > .env.web.staging
-
-      - name: Copy files to server
+      - name: Copy compose file to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.WEB_SERVER_HOST }}
           username: ${{ secrets.WEB_SERVER_USER }}
           key: ${{ secrets.WEB_SERVER_SSH_KEY }}
-          source: "deploy/docker-compose.web.yml,.env.web.staging"
+          source: "deploy/docker-compose.web.yml"
           target: "/srv/web"
-          strip_components: 2
+          strip_components: 1
 
       - name: Deploy to staging
         uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.event.workflow_run.head_branch }}
+          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
         with:
           host: ${{ secrets.WEB_SERVER_HOST }}
           username: ${{ secrets.WEB_SERVER_USER }}
           key: ${{ secrets.WEB_SERVER_SSH_KEY }}
+          envs: IMAGE_TAG, INFISICAL_CLIENT_ID, INFISICAL_CLIENT_SECRET, INFISICAL_PROJECT_ID
           script: |
             cd /srv/web
-            echo ${{ github.event.workflow_run.head_branch }} > .staging-tag
-            export IMAGE_TAG_STAGING=$(cat .staging-tag)
+            echo $IMAGE_TAG > .staging-tag
+            export IMAGE_TAG_STAGING=$IMAGE_TAG
             export IMAGE_TAG_PROD=$(cat .production-tag 2>/dev/null || echo "none")
             docker compose -f docker-compose.web.yml pull web-staging
             docker compose -f docker-compose.web.yml up -d --no-deps --force-recreate web-staging
