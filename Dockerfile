@@ -16,4 +16,7 @@ RUN go build -o /app/server ./cmd/...
 FROM alpine:3.21 AS deployment
 WORKDIR /app
 COPY --from=builder /app/server .
-ENTRYPOINT ["./server"]
+RUN apk add --no-cache curl && \
+    curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.alpine.sh' | sh && \
+    apk add infisical
+ENTRYPOINT ["infisical", "run", "--", "./server"]
