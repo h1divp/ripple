@@ -16,4 +16,5 @@ FROM node:25-alpine AS deployment
 WORKDIR /app
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
-CMD ["node", "build/index.js"]
+RUN npm install -g @infisical/cli
+CMD ["infisical", "run", "--", "node", "build/index.js"]
