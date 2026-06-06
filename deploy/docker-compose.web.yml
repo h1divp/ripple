@@ -16,7 +16,7 @@ services:
 
   # IMAGE_TAG_STAGING and IMAGE_TAG_PROD are injected as environment variables during deployment/promotion
   web-staging:
-    image: ghcr.io/h1divp/ripple-web:${IMAGE_TAG_STAGING}
+    image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_STAGING}
     ports:
       - "5174:3000"
     restart: always
@@ -30,7 +30,7 @@ services:
       - web-network
 
   web-production:
-    image: ghcr.io/h1divp/ripple-web:${IMAGE_TAG_PROD}
+    image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_PROD}
     ports:
       - "5173:3000"
     restart: always

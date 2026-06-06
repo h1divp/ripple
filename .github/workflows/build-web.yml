@@ -28,4 +28,4 @@ jobs:
           context: ./web
           push: true
           target: deployment
-          tags: ghcr.io/h1divp/ripple-web:${{ github.ref_name }}
+          tags: ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
