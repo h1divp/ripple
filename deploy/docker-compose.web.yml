@@ -16,22 +16,30 @@ services:
 
   # IMAGE_TAG_STAGING and IMAGE_TAG_PROD are injected as environment variables during deployment/promotion
   web-staging:
-    image: ghcr.io/h1divp/ripple-web:${IMAGE_TAG_STAGING}
+    image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_STAGING}
     ports:
       - "5174:3000"
     restart: always
-    env_file:
-      - ./.env.web.staging
+    environment:
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
+      INFISICAL_ENV: staging
+      INFISICAL_PATH: /web
     networks:
       - web-network
 
   web-production:
-    image: ghcr.io/h1divp/ripple-web:${IMAGE_TAG_PROD}
+    image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_PROD}
     ports:
       - "5173:3000"
     restart: always
-    env_file:
-      - ./.env.web.production
+    environment:
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
+      INFISICAL_ENV: production
+      INFISICAL_PATH: /web
     networks:
       - web-network
 

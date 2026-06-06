@@ -20,8 +20,12 @@ services:
     ports:
       - "8081:8080"
     restart: always
-    env_file:
-      - ./.env.api.staging
+    environment:
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
+      INFISICAL_ENV: staging
+      INFISICAL_PATH: /api
     networks:
       - api-network
 
@@ -30,8 +34,12 @@ services:
     ports:
       - "8080:8080"
     restart: always
-    env_file:
-      - ./.env.api.production
+    environment:
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
+      INFISICAL_ENV: production
+      INFISICAL_PATH: /api
     networks:
       - api-network
 
