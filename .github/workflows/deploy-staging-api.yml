@@ -32,15 +32,6 @@ jobs:
           target: "/srv/api"
           strip_components: 1
 
-      - name: Copy env file to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.API_SERVER_HOST }}
-          username: ${{ secrets.API_SERVER_USER }}
-          key: ${{ secrets.API_SERVER_SSH_KEY }}
-          source: ".env.api.staging"
-          target: "/srv/api"
-
       - name: Deploy to staging
         uses: appleboy/ssh-action@v1
         env:
