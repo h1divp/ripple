@@ -31,7 +31,10 @@ jobs:
           host: ${{ secrets.API_SERVER_HOST }}
           username: ${{ secrets.API_SERVER_USER }}
           key: ${{ secrets.API_SERVER_SSH_KEY }}
-          envs: INFISICAL_CLIENT_ID, INFISICAL_CLIENT_SECRET, INFISICAL_PROJECT_ID
+          envs: |
+            INFISICAL_CLIENT_ID
+            INFISICAL_CLIENT_SECRET
+            INFISICAL_PROJECT_ID
           script: |
             cd /srv/api
             cp .staging-tag .production-tag
