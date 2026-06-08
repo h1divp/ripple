@@ -17,4 +17,4 @@ WORKDIR /app
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 RUN npm install -g @infisical/cli
-CMD ["infisical", "run", "--", "node", "build/index.js"]
+CMD ["/bin/sh", "-c", "infisical run --projectId=\"$INFISICAL_PROJECT_ID\" -- node build/index.js"]

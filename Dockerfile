@@ -19,4 +19,4 @@ COPY --from=builder /app/server .
 RUN apk add --no-cache curl && \
     curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.alpine.sh' | sh && \
     apk add infisical
-ENTRYPOINT ["infisical", "run", "--", "./server"]
+ENTRYPOINT ["/bin/sh", "-c", "infisical run --projectId=\"$INFISICAL_PROJECT_ID\" -- ./server"]
