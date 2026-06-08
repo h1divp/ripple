@@ -43,11 +43,7 @@ jobs:
           host: ${{ secrets.API_SERVER_HOST }}
           username: ${{ secrets.API_SERVER_USER }}
           key: ${{ secrets.API_SERVER_SSH_KEY }}
-          envs:
-            - IMAGE_TAG
-            - INFISICAL_CLIENT_ID
-            - INFISICAL_CLIENT_SECRET
-            - INFISICAL_PROJECT_ID
+          envs: IMAGE_TAG,INFISICAL_CLIENT_ID,INFISICAL_CLIENT_SECRET,INFISICAL_PROJECT_ID
           script: |
             cd /srv/api
             echo $IMAGE_TAG > .staging-tag
