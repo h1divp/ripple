@@ -1,31 +1,10 @@
 services:
-  # caddy:
-  #   image: ghcr.io/caddybuilds/caddy-cloudflare:latest
-  #   container_name: caddy
-  #   env_file:
-  #     - ./secrets/.env.cf
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./Caddyfile.api:/etc/caddy/Caddyfile
-  #     - caddy_data:/data
-  #     - caddy_config:/config
-  #   networks:
-  #     - api-network
-
   # IMAGE_TAG_STAGING and IMAGE_TAG_PROD are injected as environment variables during deployment/promotion
   api-staging:
     image: ghcr.io/h1divp/ripple/api:${IMAGE_TAG_STAGING}
     ports:
       - "8081:8080"
     restart: always
-    environment:
-      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
-      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
-      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
-      INFISICAL_ENV: staging
-      INFISICAL_PATH: /api
     networks:
       - api-network
 
@@ -34,12 +13,6 @@ services:
     ports:
       - "8080:8080"
     restart: always
-    environment:
-      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
-      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
-      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
-      INFISICAL_ENV: production
-      INFISICAL_PATH: /api
     networks:
       - api-network
 
