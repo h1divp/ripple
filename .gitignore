@@ -33,3 +33,5 @@ go.work.sum
 
 tmp/
 deploy/.env*
+deploy/*.decrypted
+deploy/*.plaintext
