@@ -14,7 +14,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
@@ -35,15 +35,12 @@ jobs:
       - name: Deploy to staging
         uses: appleboy/ssh-action@v1
         env:
-          IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.event.workflow_run.head_branch }}
-          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
-          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+          IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.event.workflow_run.head_sha }}
         with:
           host: ${{ secrets.WEB_SERVER_HOST }}
           username: ${{ secrets.WEB_SERVER_USER }}
           key: ${{ secrets.WEB_SERVER_SSH_KEY }}
-          envs: IMAGE_TAG,INFISICAL_CLIENT_ID,INFISICAL_CLIENT_SECRET,INFISICAL_PROJECT_ID
+          envs: IMAGE_TAG
           script: |
             cd /srv/web
             echo $IMAGE_TAG > .staging-tag

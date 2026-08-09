@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -28,4 +28,6 @@ jobs:
           context: ./web
           push: true
           target: deployment
-          tags: ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
+          tags: |
+            ghcr.io/h1divp/ripple/web:${{ github.ref_name }}
+            ghcr.io/h1divp/ripple/web:${{ github.sha }}
