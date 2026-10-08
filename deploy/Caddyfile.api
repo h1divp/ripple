@@ -1,0 +1,7 @@
+ripple-api-staging.h1divp.me {
+	reverse_proxy api-staging:8080
+}
+
+ripple-api.h1divp.me {
+	reverse_proxy api-prod:8080
+}

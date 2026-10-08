@@ -1,0 +1,7 @@
+ripple-staging.h1divp.me {
+	reverse_proxy web-staging:3000
+}
+
+ripple.h1divp.me {
+	reverse_proxy web-prod:3000
+}
