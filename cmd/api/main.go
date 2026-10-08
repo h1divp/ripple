@@ -13,7 +13,7 @@ import (
 	"github.com/h1divp/echo-chat-v2/internal/api"
 	"github.com/h1divp/echo-chat-v2/internal/chat"
 	"github.com/h1divp/echo-chat-v2/internal/config"
-	"github.com/h1divp/echo-chat-v2/internal/db"
+	// "github.com/h1divp/echo-chat-v2/internal/db"
 	"github.com/h1divp/echo-chat-v2/internal/logger"
 	"github.com/h1divp/echo-chat-v2/internal/profile"
 	"github.com/h1divp/echo-chat-v2/internal/session"
@@ -24,11 +24,11 @@ func main() {
 	logger := logger.New().With().Timestamp().Logger()
 	cfg := config.Load()
 
-	dbStore, err := db.New(cfg.DatabaseURL)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("Failed to connect to PostgreSQL")
-	}
-	defer dbStore.Close()
+	// dbStore, err := db.New(cfg.DatabaseURL)
+	// if err != nil {
+	// 	logger.Fatal().Err(err).Msg("Failed to connect to PostgreSQL")
+	// }
+	// defer dbStore.Close()
 
 	redisOpt, err := redis.ParseURL(cfg.RedisURL)
 	if err != nil {
