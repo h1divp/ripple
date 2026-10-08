@@ -7,6 +7,14 @@ terraform {
       version = "~> 6.0"
     }
   }
+
+  backend "s3" {
+    bucket       = "ripple-tfstate-304318513121-us-east-1-an"
+    key          = "ripple/infra/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
+  }
 }
 
 provider "aws" {
@@ -86,7 +94,7 @@ resource "aws_route_table_association" "public" {
 
 resource "aws_security_group" "app" {
   name        = "${var.project}-app"
-  description = "公開ウェブトラフィック"
+  description = "Public web traffic"
   vpc_id      = aws_vpc.main.id
 
   tags = {
@@ -172,7 +180,7 @@ resource "aws_instance" "app" {
   root_block_device {
     encrypted   = true
     volume_type = "gp3"
-    volume_size = 20
+    volume_size = 30
   }
 
   metadata_options {
