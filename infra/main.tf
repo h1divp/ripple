@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.16.5"
+  required_version = ">= 1.15.0"
 
   required_providers {
     aws = {
@@ -95,7 +95,7 @@ resource "aws_security_group" "app" {
   }
 }
 
-resource "aws_security_group_ingress_rule" "http" {
+resource "aws_vpc_security_group_ingress_rule" "http" {
   security_group_id = aws_security_group.app.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 80
@@ -103,7 +103,7 @@ resource "aws_security_group_ingress_rule" "http" {
   ip_protocol       = "tcp"
 }
 
-resource "aws_security_group_ingress_rule" "https" {
+resource "aws_vpc_security_group_ingress_rule" "https" {
   security_group_id = aws_security_group.app.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 443
@@ -111,7 +111,7 @@ resource "aws_security_group_ingress_rule" "https" {
   ip_protocol       = "tcp"
 }
 
-resource "aws_security_group_egress_rule" "all_ipv4" {
+resource "aws_vpc_security_group_egress_rule" "all_ipv4" {
   security_group_id = aws_security_group.app.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
