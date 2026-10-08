@@ -1,24 +1,39 @@
 services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile.web:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web-network
+
   # IMAGE_TAG_STAGING and IMAGE_TAG_PROD are injected as environment variables during deployment/promotion
   web-staging:
     image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_STAGING}
-    ports:
-      - "5174:3000"
     restart: always
     networks:
       - web-network
+    environment:
+      PUBLIC_API_URL: https://ripple-api-staging.h1divp.me
+      PUBLIC_API_WS_URL: wss://ripple-api-staging.h1divp.me
 
-  web-production:
+  web-prod:
     image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_PROD}
-    ports:
-      - "5173:3000"
     restart: always
     networks:
       - web-network
+    environment:
+      PUBLIC_API_URL: https://ripple-api.h1divp.me
+      PUBLIC_API_WS_URL: wss://ripple-api.h1divp.me
 
-# volumes:
-#   caddy_data:
-#   caddy_config:
+volumes:
+  caddy_data:
+  caddy_config:
 
 networks:
   web-network:

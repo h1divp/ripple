@@ -1,25 +1,69 @@
 services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile.api:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - api-network-staging
+      - api-network-prod
+  
   # IMAGE_TAG_STAGING and IMAGE_TAG_PROD are injected as environment variables during deployment/promotion
   api-staging:
     image: ghcr.io/h1divp/ripple/api:${IMAGE_TAG_STAGING}
-    ports:
-      - "8081:8080"
     restart: always
     networks:
-      - api-network
+      - api-network-staging
+    depends_on:
+      - redis-staging
 
-  api-production:
+  api-prod:
     image: ghcr.io/h1divp/ripple/api:${IMAGE_TAG_PROD}
-    ports:
-      - "8080:8080"
     restart: always
     networks:
-      - api-network
+      - api-network-prod
+    depends_on:
+      - redis-prod
 
-# volumes:
-#   caddy_data:
-#   caddy_config:
+  redis-staging:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data_staging:/data
+    networks:
+      - api-network-staging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis-prod:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data_prod:/data
+    networks:
+      - api-network-prod
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data_staging:
+  redis_data_prod:
+  caddy_data:
+  caddy_config:
 
 networks:
-  api-network:
+  api-network-staging:
+    driver: bridge
+  api-network-prod:
     driver: bridge
