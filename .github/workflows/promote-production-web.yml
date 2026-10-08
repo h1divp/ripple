@@ -6,7 +6,7 @@ on:
 jobs:
   promote:
     runs-on: ubuntu-latest
-    environment: production
+    environment: prod
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,8 +29,8 @@ jobs:
           key: ${{ secrets.WEB_SERVER_SSH_KEY }}
           script: |
             cd /srv/web
-            cp .staging-tag .production-tag
+            cp .staging-tag .prod-tag
             export IMAGE_TAG_STAGING=$(cat .staging-tag)
-            export IMAGE_TAG_PROD=$(cat .production-tag)
-            docker compose -f docker-compose.web.yml pull web-production
-            docker compose -f docker-compose.web.yml up -d --no-deps --force-recreate web-production
+            export IMAGE_TAG_PROD=$(cat .prod-tag)
+            docker compose -f docker-compose.web.yml pull web-prod
+            docker compose -f docker-compose.web.yml up -d --no-deps --force-recreate web-prod
