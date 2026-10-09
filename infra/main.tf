@@ -229,6 +229,7 @@ resource "aws_instance" "app" {
     #!/bin/bash
     set -euxo pipefail
     dnf install -y docker
+    dnf install -y docker-compose-plugin
     systemctl enable --now docker
     usermod -aG docker ec2-user
   EOF
@@ -242,10 +243,6 @@ resource "aws_instance" "app" {
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"
-  }
-
-  lifecycle {
-    prevent_destroy = true
   }
 
   tags = {
