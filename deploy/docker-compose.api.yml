@@ -21,6 +21,8 @@ services:
       - api-network-staging
     depends_on:
       - redis-staging
+    env_file:
+      - ./env/api/staging.env
 
   api-prod:
     image: ghcr.io/h1divp/ripple/api:${IMAGE_TAG_PROD}
@@ -29,6 +31,8 @@ services:
       - api-network-prod
     depends_on:
       - redis-prod
+    env_file:
+      - ./env/api/prod.env
 
   redis-staging:
     image: redis:7-alpine
