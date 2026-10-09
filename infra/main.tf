@@ -159,7 +159,10 @@ resource "aws_iam_role" "github_actions" {
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          "token.actions.githubusercontent.com:sub" = "repo:h1divp/ripple:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:h1divp/ripple:ref:refs/heads/main",
+            "repo:h1divp/ripple:ref:refs/heads/feat/infra-setup"
+          ]
         }
       }
     }]
