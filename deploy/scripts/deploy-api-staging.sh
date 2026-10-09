@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
-
-docker -v
-docker compose version
-systemctl is-active docker
-
+cat > /tmp/compose-smoke.yml <<'YAML'
+services:
+  hello:
+    image: hello-world
+  YAML
+  docker compose -f /tmp/compose-smoke.yml run --rm hello
