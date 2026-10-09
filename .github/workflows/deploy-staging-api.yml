@@ -43,7 +43,7 @@ jobs:
             --comment "GitHub Actions SSM smoke test" \
             --parameters '{"commands":["echo hello from gh actions"]}' \
             --query 'Command.CommandId' \
-            --output test)
+            --output text)
 
           echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
 
