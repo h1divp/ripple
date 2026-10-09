@@ -145,15 +145,15 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
   client_id_list = ["sts.amazonaws.com"]
 }
 
-resource "aws_iam_role" "gh_actions" {
-  name = "${var.project}-gh-actions-role"
+resource "aws_iam_role" "github_actions" {
+  name = "${var.project}-github-actions-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
       Effect = "Allow"
       Principal = {
-        Federated = aws_iam_openconnect_provider.github_actions.arn
+        Federated = aws_iam_openid_connect_provider.github_actions.arn
       }
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
