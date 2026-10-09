@@ -37,11 +37,17 @@ jobs:
           INSTANCE_ID: ${{ vars.API_INSTANCE_ID }}
         run: |
           set -euo pipefail
+
+          # Parse the script into parameters for ssm send-command
+          PARAMETERS="$(jq -n \
+            --rawfile script deploy/scripts/deploy-api-staging.sh \
+            '{commands: [$script]}')"
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --comment "GitHub Actions SSM smoke test" \
-            --parameters '{"commands":["set -e; docker --version; docker compose version; systemctl is-active docker"]}' \
+            --parameters "$PARAMETERS" \
             --query 'Command.CommandId' \
             --output text)
 
