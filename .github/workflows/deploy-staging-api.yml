@@ -41,7 +41,7 @@ jobs:
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --comment "GitHub Actions SSM smoke test" \
-            --parameters '{"commands":["echo hello from gh actions"]}' \
+            --parameters '{"commands":["set -e; docker --version; docker compose version; systemctl is-active docker"]}' \
             --query 'Command.CommandId' \
             --output text)
 
