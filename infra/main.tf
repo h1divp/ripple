@@ -228,10 +228,22 @@ resource "aws_instance" "app" {
   user_data                   = <<-EOF
     #!/bin/bash
     set -euxo pipefail
+
+    COMPOSE_VERSION='v5.6.0'
+    ARCH=x86_64
+
+    tmp=$(mktemp)
     dnf install -y docker
-    dnf install -y docker-compose-plugin
+    curl -fsSL \
+      "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-linux-$ARCH" \
+      -o "$tmp"
+    install -D -o root -g root -m 0755 \
+      "$tmp" /usr/local/lib/docker/cli-plugins/docker-compose
+    rm -rf "$tmp"
+    
     systemctl enable --now docker
     usermod -aG docker ec2-user
+    docker compose version
   EOF
 
   root_block_device {
