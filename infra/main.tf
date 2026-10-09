@@ -125,6 +125,13 @@ resource "aws_vpc_security_group_egress_rule" "all_ipv4" {
   ip_protocol       = "-1"
 }
 
+resource "aws_iam_openid_connect_provider" "github_actions" {
+  url            = "https://token.actions.githubusercontent.com"
+  client_id_list = ["sts.amazonaws.com"]
+}
+
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "ec2" {
   name = "${var.project}-ec2-role"
 
@@ -138,11 +145,6 @@ resource "aws_iam_role" "ec2" {
       Action = "sts:AssumeRole"
     }]
   })
-}
-
-resource "aws_iam_openid_connect_provider" "github_actions" {
-  url            = "https://token.actions.githubusercontent.com"
-  client_id_list = ["sts.amazonaws.com"]
 }
 
 resource "aws_iam_role" "github_actions" {
@@ -169,10 +171,35 @@ resource "aws_iam_role" "github_actions" {
   })
 }
 
+resource "aws_iam_role_policy" "github_actions_ssm" {
+  name = "${var.project}-github-actions-policy"
+  role = aws_iam_role.github_actions.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "ssm:SendCommand"
+        Resource = [
+          "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript",
+          "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/${aws_instance.app["api"].id}"
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = "ssm:GetCommandInvocation"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.ec2.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
 
 resource "aws_iam_instance_profile" "ec2" {
   name = "${var.project}-ec2-profile"
