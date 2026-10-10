@@ -195,6 +195,34 @@ resource "aws_iam_role_policy" "github_actions_ssm" {
   })
 }
 
+resource "aws_iam_role_policy" "github_actions_artifacts" {
+  name = "${var.project}-github-actions-artifacts"
+  role = aws_iam_role.github_actions.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:PutObject"]
+      Resource = "${aws_s3_bucket.deploy_artifacts.arn}/api/*"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "ec2_artifacts" {
+  name = "${var.project}-ec2-artifacts"
+  role = aws_iam_role.ec2.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:GetObject"]
+      Resource = "${aws_s3_bucket.deploy_artifacts.arn}/api/*"
+    }]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.ec2.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -204,6 +232,28 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 resource "aws_iam_instance_profile" "ec2" {
   name = "${var.project}-ec2-profile"
   role = aws_iam_role.ec2.name
+}
+
+resource "aws_s3_bucket" "deploy_artifacts" {
+  bucket = "ripple-deploy-artifacts"
+}
+
+resource "aws_s3_bucket_public_access_block" "deploy_artifacts" {
+  bucket                  = aws_s3_bucket.deploy_artifacts.id
+  block_public_acls       = true
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "deploy_artifacts" {
+  bucket = aws_s3_bucket.deploy_artifacts.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
 }
 
 locals {
@@ -216,7 +266,7 @@ locals {
 resource "aws_instance" "app" {
   for_each = local.instances
 
-  ami                         = "ami-07f9c6534b9c70941"
+  ami                         = data.aws_ami.al2023.id
   instance_type               = each.value
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.app.id]
