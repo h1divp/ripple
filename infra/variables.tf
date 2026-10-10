@@ -27,3 +27,8 @@ variable "web_instance_type" {
   type    = string
   default = "t3.small"
 }
+
+variable "deploy_bucket" {
+  type    = string
+  default = "ripple-deploy-artifacts"
+}

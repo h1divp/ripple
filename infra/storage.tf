@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "deploy_artifacts" {
-  bucket = "ripple-deploy-artifacts"
+  bucket = var.deploy_bucket
 }
 
 resource "aws_s3_bucket_public_access_block" "deploy_artifacts" {
