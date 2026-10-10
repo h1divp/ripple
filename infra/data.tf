@@ -23,3 +23,7 @@ data "aws_ami" "al2023" {
 }
 
 data "aws_caller_identity" "current" {}
+
+data "aws_kms_alias" "ssm" {
+  name = "alias/aws/ssm"
+}

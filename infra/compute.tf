@@ -18,23 +18,40 @@ resource "aws_instance" "app" {
   user_data_replace_on_change = true
   user_data                   = <<-EOF
     #!/bin/bash
-    set -euxo pipefail
+    set -euo pipefail
 
-    COMPOSE_VERSION='v5.6.0'
-    ARCH=x86_64
+    workdir=$(mktemp -d)
+    trap 'rm -rf "$workdir"' EXIT
+    cd "$workdir"
 
-    tmp=$(mktemp)
     dnf install -y docker
-    curl -fsSL \
-      "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-linux-$ARCH" \
-      -o "$tmp"
-    install -D -o root -g root -m 0755 \
-      "$tmp" /usr/local/lib/docker/cli-plugins/docker-compose
-    rm -rf "$tmp"
+    command -v curl >/dev/null 2>&1 || dnf install -y curl
+
+    COMPOSE_VERSION=v5.6.0
+    COMPOSE_ASSET=docker-compose-linux-x86_64
+    COMPOSE_CHECKSUMS=checksums.txt
+    COMPOSE_URL=https://github.com/docker/compose/releases/download/$COMPOSE_VERSION
+
+    curl -fsSL "$COMPOSE_URL/$COMPOSE_ASSET" -o "$COMPOSE_ASSET"
+    curl -fsSL "$COMPOSE_URL/$COMPOSE_CHECKSUMS" -o "$COMPOSE_CHECKSUMS"
+    sha256sum --ignore-missing -c "$COMPOSE_CHECKSUMS"
+    install -D -o root -g root -m 0755 "$COMPOSE_ASSET" \
+      /usr/local/lib/docker/cli-plugins/docker-compose
+
+    SOPS_VERSION=3.13.3
+    SOPS_ASSET=sops-v$SOPS_VERSION.linux.amd64
+    SOPS_CHECKSUMS=sops-v$SOPS_VERSION.checksums.txt
+    SOPS_URL=https://github.com/getsops/sops/releases/download/v$SOPS_VERSION
+
+    curl -fsSL "$SOPS_URL/$SOPS_ASSET" -o "$SOPS_ASSET"
+    curl -fsSL "$SOPS_URL/$SOPS_CHECKSUMS" -o "$SOPS_CHECKSUMS"
+    sha256sum --ignore-missing -c "$SOPS_CHECKSUMS"
+    install -o root -g root -m 0755 "$SOPS_ASSET" /usr/local/bin/sops
 
     systemctl enable --now docker
     usermod -aG docker ec2-user
     docker compose version
+    sops --version
   EOF
 
   root_block_device {
