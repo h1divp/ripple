@@ -71,7 +71,7 @@ resource "aws_iam_role_policy" "github_actions_artifacts" {
   role = aws_iam_role.github_actions.name
 
   policy = jsonencode({
-    Version = "2012-10-07"
+    Version = "2012-10-17"
     Statement = [{
       Effect   = "Allow"
       Action   = ["s3:PutObject"]
