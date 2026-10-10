@@ -16,6 +16,9 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.event.workflow_run.head_sha }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,6 +27,8 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6.3.0
@@ -31,17 +36,37 @@ jobs:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Send SSM smoke test
+      - name: Package API deployment bundle
+        run: |
+          # prod keys are copied since docker compose will require them, for now
+          tar -czf "$RUNNER_TEMP/api-bundle.tgz" -C deploy \
+            .sops.yaml \
+            docker-compose.api.yml \
+            Caddyfile.api \
+            env/api/staging.env.sops \
+            env/api/prod.env.sops
+
+      - name: Upload API deployment bundle
+        env:
+          DEPLOY_BUCKET: ${{ vars.DEPLOY_BUCKET }}
+        run: |
+          aws s3 cp "$RUNNER_TEMP/api-bundle.tgz" \
+            "s3://${DEPLOY_BUCKET}/api/${IMAGE_TAG}/bundle.tgz"
+
+      - name: Deploy to staging
         id: ssm
         env:
           INSTANCE_ID: ${{ vars.API_INSTANCE_ID }}
+          DEPLOY_BUCKET: ${{ vars.DEPLOY_BUCKET }}
         run: |
           set -euo pipefail
 
           # Parse the script into parameters for ssm send-command
           PARAMETERS="$(jq -n \
             --rawfile script deploy/scripts/deploy-api-staging.sh \
-            '{commands: [$script]}')"
+            --arg bucket "$DEPLOY_BUCKET" \
+            --arg tag "$IMAGE_TAG" \
+            '{commands: ["DEPLOY_BUCKET=" + ($bucket|@sh) + " IMAGE_TAG=" + ($tag|@sh) + "\n" + $script]}')"
 
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
