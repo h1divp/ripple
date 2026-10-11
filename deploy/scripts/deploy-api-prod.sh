@@ -37,4 +37,6 @@ docker compose -f docker-compose.api.yml pull api-prod
 docker compose -f docker-compose.api.yml up -d caddy redis-prod
 docker compose -f docker-compose.api.yml up -d --no-deps --force-recreate api-prod
 
+# Make sure we're using the correct tag before setting .prod-tag. set -e will cause this to exit on failure.
+test -n "$(docker compose -f docker-compose.api.yml ps -q api-prod)"
 printf '%s\n' "$TARGET_TAG" > .prod-tag

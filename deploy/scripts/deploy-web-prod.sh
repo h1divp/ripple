@@ -36,4 +36,7 @@ docker compose -f docker-compose.web.yml config --quiet
 docker compose -f docker-compose.web.yml pull web-prod
 docker compose -f docker-compose.web.yml up -d --no-deps --force-recreate web-prod
 
+# Make sure we're using the correct tag before setting .prod-tag. set -e will cause this to exit on failure.
+test -n "$(docker compose -f docker-compose.web.yml ps -q web-prod)"
+
 printf '%s\n' "$TARGET_TAG" > .prod-tag
