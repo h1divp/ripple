@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 env:
-  IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.event.workflow_run.head_sha }}
+  IMAGE_TAG: ${{ inputs.image_tag }}
 
 jobs:
   deploy:
