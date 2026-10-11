@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { PUBLIC_API_WS_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import { messages, isConnected } from '$lib/stores/chat';
 import { userDisplayName, userAvatarUrl } from '$lib/stores/user';
 import { userCoords } from '$lib/stores/location';
@@ -10,7 +10,7 @@ import { handleChatMessage, handleNearbyUpdate, handleSystemMessage } from './me
 let socket: WebSocket;
 
 export function connect() {
-  const connUrl = `${PUBLIC_API_WS_URL}/chat/ws`;
+  const connUrl = `${env.PUBLIC_API_WS_URL}/chat/ws`;
   socket = new WebSocket(connUrl);
 
   socket.onopen = handleSocketOpen;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PUBLIC_MAX_MESSAGE_CHARACTERS } from '$env/static/public';
+  import { env } from '$env/dynamic/public';
   import { isConnected, rateLimitEndTime } from '$lib/stores/chat';
   import { hasLocation } from '$lib/stores/location';
   import { IconSend2, IconCloudOff } from '@tabler/icons-svelte';
@@ -13,9 +13,9 @@
 
   const isRateLimited = $derived($rateLimitEndTime > 0)
   const canSend = $derived($isConnected && $hasLocation && !isRateLimited);
-  const remainingChars = $derived(PUBLIC_MAX_MESSAGE_CHARACTERS - newMessage.length);
+  const remainingChars = $derived(env.PUBLIC_MAX_MESSAGE_CHARACTERS - newMessage.length);
   const isNearLimit = $derived(remainingChars <= 50);
-  const isOverLimit = $derived(newMessage.length > PUBLIC_MAX_MESSAGE_CHARACTERS );
+  const isOverLimit = $derived(newMessage.length > env.PUBLIC_MAX_MESSAGE_CHARACTERS );
 
   onMount(() => {
     const interval = setInterval(() => {
@@ -66,7 +66,7 @@
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       const trimmed = newMessage.trim();
-      if (trimmed && trimmed.length <= PUBLIC_MAX_MESSAGE_CHARACTERS && canSend) {
+      if (trimmed && trimmed.length <= env.PUBLIC_MAX_MESSAGE_CHARACTERS && canSend) {
         handleSend();
         if (textarea) textarea.style.height = 'auto';
       }

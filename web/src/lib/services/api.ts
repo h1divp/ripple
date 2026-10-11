@@ -1,8 +1,8 @@
-import { PUBLIC_API_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import { storeMap } from '$lib/stores/user';
 
 export async function getProfile() {
-  const url = `${PUBLIC_API_URL}/profile`;
+  const url = `${env.PUBLIC_API_URL}/profile`;
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -24,7 +24,7 @@ export async function getProfile() {
 }
 
 export async function getSession() {
-  const url = `${PUBLIC_API_URL}/register`;
+  const url = `${env.PUBLIC_API_URL}/register`;
   try {
     const response = await fetch(url, {
       method: 'POST',

@@ -1,51 +1,44 @@
 services:
-  # caddy:
-  #   image: ghcr.io/caddybuilds/caddy-cloudflare:latest
-  #   container_name: caddy
-  #   env_file:
-  #     - ./secrets/.env.cf
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./Caddyfile.web:/etc/caddy/Caddyfile
-  #     - caddy_data:/data
-  #     - caddy_config:/config
-  #   networks:
-  #     - web-network
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile.web:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web-network
 
   # IMAGE_TAG_STAGING and IMAGE_TAG_PROD are injected as environment variables during deployment/promotion
   web-staging:
     image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_STAGING}
-    ports:
-      - "5174:3000"
     restart: always
-    environment:
-      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
-      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
-      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
-      INFISICAL_ENV: staging
-      INFISICAL_PATH: /web
     networks:
       - web-network
+    environment:
+      PUBLIC_API_URL: https://ripple-api-staging.h1divp.me
+      PUBLIC_API_WS_URL: wss://ripple-api-staging.h1divp.me
+    env_file:
+      - ./env/web/staging.env
 
-  web-production:
+  web-prod:
     image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_PROD}
-    ports:
-      - "5173:3000"
     restart: always
-    environment:
-      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
-      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
-      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
-      INFISICAL_ENV: production
-      INFISICAL_PATH: /web
     networks:
       - web-network
+    environment:
+      PUBLIC_API_URL: https://ripple-api.h1divp.me
+      PUBLIC_API_WS_URL: wss://ripple-api.h1divp.me
+    env_file:
+      - path: ./env/web/prod.env
+        required: false # for now
 
-# volumes:
-#   caddy_data:
-#   caddy_config:
+volumes:
+  caddy_data:
+  caddy_config:
 
 networks:
   web-network:
