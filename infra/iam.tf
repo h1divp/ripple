@@ -54,7 +54,8 @@ resource "aws_iam_role_policy" "github_actions_ssm" {
         Action = "ssm:SendCommand"
         Resource = [
           "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript",
-          "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/${aws_instance.app["api"].id}"
+          "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/${aws_instance.app["api"].id}",
+          "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/${aws_instance.app["web"].id}"
         ]
       },
       {
@@ -73,9 +74,12 @@ resource "aws_iam_role_policy" "github_actions_artifacts" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["s3:PutObject"]
-      Resource = "${aws_s3_bucket.deploy_artifacts.arn}/api/*"
+      Effect = "Allow"
+      Action = ["s3:PutObject"]
+      Resource = [
+        "${aws_s3_bucket.deploy_artifacts.arn}/api/*",
+        "${aws_s3_bucket.deploy_artifacts.arn}/web/*"
+      ]
     }]
   })
 }
@@ -87,9 +91,12 @@ resource "aws_iam_role_policy" "ec2_artifacts" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["s3:GetObject"]
-      Resource = "${aws_s3_bucket.deploy_artifacts.arn}/api/*"
+      Effect = "Allow"
+      Action = ["s3:GetObject"]
+      Resource = [
+        "${aws_s3_bucket.deploy_artifacts.arn}/api/*",
+        "${aws_s3_bucket.deploy_artifacts.arn}/web/*"
+      ]
     }]
   })
 }
