@@ -95,7 +95,7 @@ resource "aws_iam_role_policy" "ec2_artifacts" {
 }
 
 resource "aws_iam_role_policy" "ec2_sops_age_key" {
-  name = "${var.project}-ec2-artifacts"
+  name = "${var.project}-ec2-sops-age-key"
   role = aws_iam_role.ec2.name
 
   policy = jsonencode({
