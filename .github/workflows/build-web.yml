@@ -1,12 +1,12 @@
 name: Build and Push Web Image
 
 on:
-  push:
-    tags:
-      - 'web-v*'
+  release:
+    types: [published]
 
 jobs:
   build:
+    if: startsWith(github.event.release.tag_name, 'web-v')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,5 +29,5 @@ jobs:
           push: true
           target: deployment
           tags: |
-            ghcr.io/h1divp/ripple/web:${{ github.ref_name }}
+            ghcr.io/h1divp/ripple/web:${{ github.event.release.tag_name }}
             ghcr.io/h1divp/ripple/web:${{ github.sha }}

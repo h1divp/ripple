@@ -1,12 +1,12 @@
 name: Build and Push API Image
 
 on:
-  push:
-    tags:
-      - 'api-v*'
+  release:
+    types: [published]
 
 jobs:
   build:
+    if: startsWith(github.event.release.tag_name, 'api-v')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,5 +29,5 @@ jobs:
           push: true
           target: deployment
           tags: |
-            ghcr.io/h1divp/ripple/api:${{ github.ref_name }}
+            ghcr.io/h1divp/ripple/api:${{ github.event.release.tag_name }}
             ghcr.io/h1divp/ripple/api:${{ github.sha }}
