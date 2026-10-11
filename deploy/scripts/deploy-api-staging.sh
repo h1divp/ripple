@@ -25,7 +25,7 @@ mv "$ENV_DIR/staging.env.tmp" "$ENV_DIR/staging.env"
 
 cd /srv/api
 IMAGE_TAG_STAGING=$IMAGE_TAG
-IMAGE_TAG_PROD=$(cat .production-tag 2>/dev/null || printf 'none')
+IMAGE_TAG_PROD=$(cat .prod-tag 2>/dev/null || printf 'none')
 export IMAGE_TAG_STAGING IMAGE_TAG_PROD
 
 docker compose -f docker-compose.api.yml config --quiet
