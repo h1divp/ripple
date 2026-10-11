@@ -29,6 +29,7 @@ chmod 600 "$ENV_DIR/prod.env.tmp"
 mv "$ENV_DIR/prod.env.tmp" "$ENV_DIR/prod.env"
 
 IMAGE_TAG_PROD=$TARGET_TAG
+IMAGE_TAG_STAGING=$STAGING_TAG
 export IMAGE_TAG_STAGING IMAGE_TAG_PROD
 
 docker compose -f docker-compose.api.yml config --quiet
