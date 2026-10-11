@@ -35,4 +35,4 @@ tmp/
 deploy/.env*
 deploy/*.decrypted
 deploy/*.plaintext
-**/.env
+**/*.env
