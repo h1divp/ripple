@@ -3,9 +3,10 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY svelte.config.js ./
 RUN pnpm install --frozen-lockfile
-COPY . .
 
+COPY . .
 FROM base AS development
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
