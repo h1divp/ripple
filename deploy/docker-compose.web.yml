@@ -21,6 +21,8 @@ services:
     environment:
       PUBLIC_API_URL: https://ripple-api-staging.h1divp.me
       PUBLIC_API_WS_URL: wss://ripple-api-staging.h1divp.me
+    env_file:
+      - ./env/web/staging.env
 
   web-prod:
     image: ghcr.io/h1divp/ripple/web:${IMAGE_TAG_PROD}
@@ -30,6 +32,9 @@ services:
     environment:
       PUBLIC_API_URL: https://ripple-api.h1divp.me
       PUBLIC_API_WS_URL: wss://ripple-api.h1divp.me
+    env_file:
+      - path: ./env/web/prod.env
+        required: false # for now
 
 volumes:
   caddy_data:
