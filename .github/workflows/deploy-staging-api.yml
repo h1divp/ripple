@@ -22,6 +22,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: staging
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
@@ -71,14 +72,14 @@ jobs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --comment "GitHub Actions SSM smoke test" \
+            --comment "Deploy api to staging" \
             --parameters "$PARAMETERS" \
             --query 'Command.CommandId' \
             --output text)
 
           echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Wait for SSM command
+      - name: Wait for deployment
         env:
           INSTANCE_ID: ${{ vars.API_INSTANCE_ID }}
           COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
