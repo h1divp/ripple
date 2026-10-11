@@ -32,7 +32,8 @@ services:
     depends_on:
       - redis-prod
     env_file:
-      - ./env/api/prod.env
+      - path: ./env/api/prod.env
+        required: false # for now
 
   redis-staging:
     image: redis:7-alpine
